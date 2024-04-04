@@ -18,16 +18,38 @@ type Scanner struct {
 	current int
 	line    int
 
+	reservedWords map[string]TokenType
+
 	errorHandler ErrorHandler
 }
 
 func NewScanner(source string) *Scanner {
+	reservedWords := map[string]TokenType{
+		"and":    AND,
+		"class":  CLASS,
+		"else":   ELSE,
+		"false":  FALSE,
+		"for":    FOR,
+		"fun":    FUN,
+		"if":     IF,
+		"nil":    NIL,
+		"or":     OR,
+		"print":  PRINT,
+		"return": RETURN,
+		"super":  SUPER,
+		"this":   THIS,
+		"true":   TRUE,
+		"var":    VAR,
+		"while":  WHILE,
+	}
+
 	return &Scanner{
-		source:  source,
-		tokens:  make([]Token, 0),
-		start:   0,
-		current: 0,
-		line:    1,
+		source:        source,
+		tokens:        make([]Token, 0),
+		start:         0,
+		current:       0,
+		line:          1,
+		reservedWords: reservedWords,
 		// TODO: not sure what the best way to handle errors so hook into Lox for now
 		errorHandler: NewLox(),
 	}
@@ -119,7 +141,9 @@ func (s *Scanner) scanToken() {
 		s.eatString()
 	default:
 		if isDigit(c) {
-			s.eatNumber()
+			s.number()
+		} else if isAlpha(c) {
+			s.identifier()
 		} else {
 			s.errorHandler.handleError(s.line, "unexpected character")
 
@@ -204,7 +228,20 @@ func isDigit(c string) bool {
 	return unicode.IsDigit(runeValue)
 }
 
-func (s *Scanner) eatNumber() {
+func isAlpha(c string) bool {
+	if len(c) != 1 {
+		return false
+	}
+
+	runeValue := []rune(c)[0]
+	return unicode.IsLetter(runeValue)
+}
+
+func isAlphaNumeric(c string) bool {
+	return isAlpha(c) || isDigit(c)
+}
+
+func (s *Scanner) number() {
 	for isDigit(s.peek()) {
 		s.advance()
 	}
@@ -223,5 +260,18 @@ func (s *Scanner) eatNumber() {
 		s.errorHandler.handleError(s.line, "there was an error parsing the number")
 	} else {
 		s.addTokenWithLiteral(NUMBER, float)
+	}
+}
+
+func (s *Scanner) identifier() {
+	for isAlphaNumeric(s.peek()) {
+		s.advance()
+	}
+
+	ident := s.source[s.start:s.current]
+	if tt, ok := s.reservedWords[ident]; ok {
+		s.addToken(tt)
+	} else {
+		s.addTokenWithLiteral(IDENTIFIER, ident)
 	}
 }

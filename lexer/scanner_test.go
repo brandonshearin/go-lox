@@ -80,6 +80,13 @@ func TestLongerLexemes(t *testing.T) {
 			NumTokens:  3,
 			TokenTypes: []TokenType{NUMBER, NUMBER, EOF},
 		},
+		{
+			ID:         6,
+			Source:     "for while",
+			Lines:      1,
+			NumTokens:  3,
+			TokenTypes: []TokenType{FOR, WHILE, EOF},
+		},
 	}
 
 	for _, testCase := range testCases {
