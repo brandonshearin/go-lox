@@ -5,9 +5,10 @@ import (
 	"os"
 
 	"github.com/brandonshearin/go-lox/lexer"
+	"github.com/brandonshearin/go-lox/parser"
 )
 
-func main() {
+func main_old() {
 
 	lox := lexer.NewLox()
 	// a file was provided. os.Args[0] is the program name, os.Args[1] is the first argument
@@ -20,4 +21,29 @@ func main() {
 		lox.RunPrompt()
 	}
 
+}
+
+func main() {
+	expr := &parser.BinaryExpr{
+		LeftExpr: &parser.UnaryExpr{
+			Operator: parser.Operator{
+				Token: *lexer.NewToken(lexer.MINUS, "-", "-", 1),
+			},
+			Expr: &parser.LiteralExpr{
+				Literal: "123",
+			},
+		},
+		Operator: parser.Operator{
+			Token: *lexer.NewToken(lexer.STAR, "*", "*", 1),
+		},
+		RightExpr: &parser.GroupingExpr{
+			Expr: &parser.LiteralExpr{
+				Literal: "45.67",
+			},
+		},
+	}
+
+	ast := parser.ASTPrinter{}
+
+	fmt.Println(ast.Print(expr))
 }

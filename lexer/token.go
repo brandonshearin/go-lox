@@ -3,10 +3,10 @@ package lexer
 import "fmt"
 
 type Token struct {
-	tokenType TokenType
-	lexeme    string
-	literal   any
-	line      int
+	TokenType TokenType
+	Lexeme    string
+	Literal   any
+	Line      int
 }
 
 func NewToken(t TokenType, lexeme string, literal any, line int) *Token {
@@ -14,5 +14,5 @@ func NewToken(t TokenType, lexeme string, literal any, line int) *Token {
 }
 
 func (t *Token) String() string {
-	return fmt.Sprintf("token type: %s, lexeme: %s", t.tokenType.String(), t.lexeme)
+	return fmt.Sprintf("token type: %s, lexeme: %s", t.TokenType.String(), t.Lexeme)
 }

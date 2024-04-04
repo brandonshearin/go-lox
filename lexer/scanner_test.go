@@ -14,9 +14,9 @@ func TestLexemeLength1(t *testing.T) {
 	tokens := s.ScanTokens()
 
 	assert.Len(tokens, 3, "tokens should be length 3")
-	assert.Equal(LEFT_PAREN, tokens[0].tokenType)
-	assert.Equal(RIGHT_PAREN, tokens[1].tokenType)
-	assert.Equal(EOF, tokens[2].tokenType)
+	assert.Equal(LEFT_PAREN, tokens[0].TokenType)
+	assert.Equal(RIGHT_PAREN, tokens[1].TokenType)
+	assert.Equal(EOF, tokens[2].TokenType)
 }
 
 func TestLexemeLength2(t *testing.T) {
@@ -26,10 +26,10 @@ func TestLexemeLength2(t *testing.T) {
 	tokens := s.ScanTokens()
 
 	assert.Len(tokens, 4, "tokens should be length 2")
-	assert.Equal(BANG_EQUAL, tokens[0].tokenType)
-	assert.Equal(LESS_EQUAL, tokens[1].tokenType)
-	assert.Equal(GREATER, tokens[2].tokenType)
-	assert.Equal(EOF, tokens[3].tokenType)
+	assert.Equal(BANG_EQUAL, tokens[0].TokenType)
+	assert.Equal(LESS_EQUAL, tokens[1].TokenType)
+	assert.Equal(GREATER, tokens[2].TokenType)
+	assert.Equal(EOF, tokens[3].TokenType)
 }
 
 type ScannerTestCase struct {
@@ -97,7 +97,7 @@ func TestLongerLexemes(t *testing.T) {
 		assert.Equal(s.line, testCase.Lines, fmt.Sprintf("test case %d failed", testCase.ID))
 
 		for idx, expectedType := range testCase.TokenTypes {
-			assert.Equal(expectedType, tokens[idx].tokenType, "test case %d failed. wanted %s token type, got %s token type", testCase.ID, expectedType, tokens[idx].tokenType)
+			assert.Equal(expectedType, tokens[idx].TokenType, "test case %d failed. wanted %s token type, got %s token type", testCase.ID, expectedType, tokens[idx].TokenType)
 		}
 	}
 }
