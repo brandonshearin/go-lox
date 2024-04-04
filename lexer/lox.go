@@ -52,24 +52,31 @@ func (l *Lox) RunPrompt() {
 }
 
 func (l *Lox) run(source string) {
+
+	s := NewScanner(source)
+
+	for _, token := range s.ScanTokens() {
+		fmt.Println(token.String())
+	}
+
 	// Create a new scanner from the source string
-	scanner := bufio.NewScanner(strings.NewReader(source))
+	// scanner := bufio.NewScanner(strings.NewReader(source))
 
-	// Set the split function for the scanning operation. lets break on words
-	scanner.Split(bufio.ScanWords)
+	// // Set the split function for the scanning operation. lets break on words
+	// scanner.Split(bufio.ScanWords)
 
-	// Create a slice to hold the tokens
-	var tokens []string
+	// // Create a slice to hold the tokens
+	// var tokens []string
 
-	// Loop over the lines in the input and append them to the tokens slice
-	for scanner.Scan() {
-		tokens = append(tokens, scanner.Text())
-	}
+	// // Loop over the lines in the input and append them to the tokens slice
+	// for scanner.Scan() {
+	// 	tokens = append(tokens, scanner.Text())
+	// }
 
-	// for now, just print the tokens
-	for _, token := range tokens {
-		fmt.Println(token)
-	}
+	// // for now, just print the tokens
+	// for _, token := range tokens {
+	// 	fmt.Println(token)
+	// }
 }
 
 // TODO: maybe collect error messages in a slice on the Lox struct for test assertions
