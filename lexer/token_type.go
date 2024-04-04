@@ -4,7 +4,7 @@ type TokenType int
 
 const (
 	// single character tokens
-	LEFT_PAREN = iota
+	LEFT_PAREN TokenType = iota
 	RIGHT_PAREN
 	LEFT_BRACE
 	RIGHT_BRACE

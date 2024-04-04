@@ -36,7 +36,7 @@ func (s *Scanner) ScanTokens() []Token {
 }
 
 func (s *Scanner) isAtEnd() bool {
-	return s.current > len(s.source)
+	return s.current == len(s.source)
 }
 
 // in each turn of the loop, we scan a single token
