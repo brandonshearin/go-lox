@@ -1,6 +1,9 @@
 package lexer
 
-import "fmt"
+import (
+	"strconv"
+	"unicode"
+)
 
 type ErrorHandler interface {
 	handleError(line int, message string)
@@ -112,18 +115,33 @@ func (s *Scanner) scanToken() {
 	case "\t":
 	case "\n":
 		s.line += 1
+	case "\"":
+		s.eatString()
 	default:
-		s.errorHandler.handleError(s.line, "unexpected character")
+		if isDigit(c) {
+			s.eatNumber()
+		} else {
+			s.errorHandler.handleError(s.line, "unexpected character")
+
+		}
 	}
 }
 
-// peek just looks ahead
+// peek just looks at current token, doesn't consume
 func (s *Scanner) peek() string {
 	if s.isAtEnd() {
-		return fmt.Sprintf("\\%d", 0)
+		return "\\0"
 	} else {
 		return string(s.source[s.current])
 	}
+}
+
+// peekNext looks at next token, doesnt consume
+func (s *Scanner) peekNext() string {
+	if s.current+1 >= len(s.source) {
+		return "\\0"
+	}
+	return string(s.source[s.current+1])
 }
 
 // advance consumes the current character
@@ -153,4 +171,57 @@ func (s *Scanner) match(expected string) bool {
 
 	s.current += 1
 	return true
+}
+
+func (s *Scanner) eatString() {
+	for s.peek() != "\"" && !s.isAtEnd() {
+		if s.peek() == "\n" {
+			s.line += 1
+		}
+		s.advance()
+	}
+
+	if s.isAtEnd() {
+		s.errorHandler.handleError(s.line, "unterminated string")
+		return
+	}
+
+	// the closing quote
+	s.advance()
+
+	// trim the quotes
+	value := s.source[s.start+1 : s.current-1]
+	s.addTokenWithLiteral(STRING, value)
+}
+
+func isDigit(c string) bool {
+	if len(c) != 1 {
+		return false
+	}
+
+	runeValue := []rune(c)[0]
+
+	return unicode.IsDigit(runeValue)
+}
+
+func (s *Scanner) eatNumber() {
+	for isDigit(s.peek()) {
+		s.advance()
+	}
+
+	// look for fractional digits
+	if s.peek() == "." && isDigit(s.peekNext()) {
+		// consume the `.`
+		s.advance()
+
+		for isDigit(s.peek()) {
+			s.advance()
+		}
+	}
+
+	if float, err := strconv.ParseFloat(s.source[s.start:s.current], 32); err != nil {
+		s.errorHandler.handleError(s.line, "there was an error parsing the number")
+	} else {
+		s.addTokenWithLiteral(NUMBER, float)
+	}
 }

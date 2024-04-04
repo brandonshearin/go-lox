@@ -40,7 +40,7 @@ type ScannerTestCase struct {
 	TokenTypes []TokenType
 }
 
-func TestWhiteSpaceLexemes(t *testing.T) {
+func TestLongerLexemes(t *testing.T) {
 	assert := assert.New(t)
 
 	testCases := []ScannerTestCase{
@@ -65,6 +65,20 @@ func TestWhiteSpaceLexemes(t *testing.T) {
 			Lines:      1,
 			NumTokens:  11,
 			TokenTypes: []TokenType{BANG, STAR, PLUS, MINUS, SLASH, EQUAL, LESS, GREATER, LESS_EQUAL, EQUAL_EQUAL, EOF},
+		},
+		{
+			ID:         4,
+			Source:     "\"hello world\" \"whats your name?\"",
+			Lines:      1,
+			NumTokens:  3,
+			TokenTypes: []TokenType{STRING, STRING, EOF},
+		},
+		{
+			ID:         5,
+			Source:     "123456 1.43",
+			Lines:      1,
+			NumTokens:  3,
+			TokenTypes: []TokenType{NUMBER, NUMBER, EOF},
 		},
 	}
 
