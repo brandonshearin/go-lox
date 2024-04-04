@@ -1,5 +1,7 @@
 package lexer
 
+import "fmt"
+
 type ErrorHandler interface {
 	handleError(line int, message string)
 }
@@ -67,8 +69,6 @@ func (s *Scanner) scanToken() {
 		s.addToken(PLUS)
 	case ":":
 		s.addToken(SEMICOLON)
-	case "/":
-		s.addToken(SLASH)
 	case "*":
 		s.addToken(STAR)
 	case "!":
@@ -99,11 +99,34 @@ func (s *Scanner) scanToken() {
 		} else {
 			s.addToken(GREATER)
 		}
+	case "/":
+		if matches := s.match("/"); matches {
+			for s.peek() != "\n" && !s.isAtEnd() {
+				s.advance()
+			}
+		} else {
+			s.addToken(SLASH)
+		}
+	case " ":
+	case "\r":
+	case "\t":
+	case "\n":
+		s.line += 1
 	default:
 		s.errorHandler.handleError(s.line, "unexpected character")
 	}
 }
 
+// peek just looks ahead
+func (s *Scanner) peek() string {
+	if s.isAtEnd() {
+		return fmt.Sprintf("\\%d", 0)
+	} else {
+		return string(s.source[s.current])
+	}
+}
+
+// advance consumes the current character
 func (s *Scanner) advance() string {
 	nextChar := s.source[s.current]
 	s.current += 1
