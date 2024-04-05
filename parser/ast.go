@@ -59,7 +59,9 @@ func (a *ASTPrinter) parenthesize(name string, expr ...Expr) string {
 }
 
 type LiteralExpr struct {
-	Literal string
+	Literal   string
+	IsBoolean bool
+	IsNil     bool
 }
 
 func (l *LiteralExpr) Expression() {}

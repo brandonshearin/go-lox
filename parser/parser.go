@@ -37,10 +37,98 @@ func (p *Parser) equality() Expr {
 	return expr
 }
 
+// comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 func (p *Parser) comparison() Expr {
-	if p.match(lexer.STRING) {
+	expr := p.term()
+
+	for p.match(lexer.GREATER, lexer.GREATER_EQUAL, lexer.LESS, lexer.LESS_EQUAL) {
+		operator := p.previous()
+		right := p.term()
+
+		expr = &BinaryExpr{
+			LeftExpr:  expr,
+			Operator:  Operator(operator),
+			RightExpr: right,
+		}
+	}
+
+	return expr
+}
+
+// term → factor ( ( "-" | "+" ) factor )* ;
+func (p *Parser) term() Expr {
+	expr := p.factor()
+
+	for p.match(lexer.MINUS, lexer.PLUS) {
+		operator := p.previous()
+		right := p.factor()
+		expr = &BinaryExpr{
+			LeftExpr:  expr,
+			Operator:  Operator(operator),
+			RightExpr: right,
+		}
+	}
+	return expr
+}
+
+// factor → unary ( ( "/" | "*" ) unary )* ;
+func (p *Parser) factor() Expr {
+	expr := p.unary()
+
+	for p.match(lexer.SLASH, lexer.STAR) {
+		operator := p.previous()
+		right := p.unary()
+		expr = &BinaryExpr{
+			LeftExpr:  expr,
+			Operator:  Operator(operator),
+			RightExpr: right,
+		}
+	}
+
+	return expr
+}
+
+// unary → ( "!" | "-" ) unary | primary ;
+func (p *Parser) unary() Expr {
+	if p.match(lexer.BANG, lexer.MINUS) {
+		operator := p.previous()
+		right := p.unary()
+		return &UnaryExpr{
+			Operator: Operator(operator),
+			Expr:     right,
+		}
+	}
+
+	return p.primary()
+}
+
+// primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+func (p *Parser) primary() Expr {
+	if p.match(lexer.NUMBER, lexer.STRING) {
 		return &LiteralExpr{
 			Literal: p.previous().Lexeme,
+		}
+	}
+
+	if p.match(lexer.TRUE, lexer.FALSE) {
+		return &LiteralExpr{
+			Literal:   p.previous().Lexeme,
+			IsBoolean: true,
+		}
+	}
+
+	if p.match(lexer.NIL) {
+		return &LiteralExpr{
+			Literal: p.previous().Lexeme,
+			IsNil:   true,
+		}
+	}
+
+	if p.match(lexer.LEFT_PAREN) {
+		expr := p.expression()
+		p.consume(lexer.RIGHT_PAREN, "Expect '(' after expression)")
+		return &GroupingExpr{
+			Expr: expr,
 		}
 	}
 
