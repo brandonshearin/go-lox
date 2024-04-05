@@ -25,11 +25,11 @@ func (a *ASTPrinter) Print(expr Expr) string {
 }
 
 func (a *ASTPrinter) VisitBinaryExpr(expr *BinaryExpr) string {
-	return a.parenthesize(expr.Operator.Token.Lexeme, expr.LeftExpr, expr.RightExpr)
+	return a.parenthesize(expr.Operator.Lexeme, expr.LeftExpr, expr.RightExpr)
 }
 
 func (a *ASTPrinter) VisitUnaryExpr(expr *UnaryExpr) string {
-	return a.parenthesize(expr.Operator.Token.Lexeme, expr.Expr)
+	return a.parenthesize(expr.Operator.Lexeme, expr.Expr)
 }
 
 func (a *ASTPrinter) VisitGroupingExpr(expr *GroupingExpr) string {
@@ -102,6 +102,5 @@ func (g *GroupingExpr) Accept(visitor Visitor) string {
 	return visitor.VisitGroupingExpr(g)
 }
 
-type Operator struct {
-	Token lexer.Token
-}
+// TODO: is this jank?
+type Operator lexer.Token
