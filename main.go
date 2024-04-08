@@ -27,14 +27,20 @@ func main() {
 	expr := &parser.BinaryExpr{
 		LeftExpr: &parser.UnaryExpr{
 			Operator: parser.Operator{
-				Token: *lexer.NewToken(lexer.MINUS, "-", "-", 1),
+				TokenType: lexer.MINUS,
+				Lexeme:    "-",
+				Literal:   "-",
+				Line:      1,
 			},
 			Expr: &parser.LiteralExpr{
 				Literal: "123",
 			},
 		},
 		Operator: parser.Operator{
-			Token: *lexer.NewToken(lexer.STAR, "*", "*", 1),
+			TokenType: lexer.STAR,
+			Lexeme:    "*",
+			Literal:   "*",
+			Line:      1,
 		},
 		RightExpr: &parser.GroupingExpr{
 			Expr: &parser.LiteralExpr{

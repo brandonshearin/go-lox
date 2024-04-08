@@ -87,3 +87,16 @@ func TestComparisonExpr(t *testing.T) {
 
 	assert.Equal(t, "(== a (> b c))", prettyPrinted)
 }
+
+func TestErrorHandling(t *testing.T) {
+	p := NewParser([]lexer.Token{
+		{TokenType: lexer.GREATER, Lexeme: ">", Literal: ">", Line: 1},
+		{TokenType: lexer.EOF, Lexeme: "\\0", Literal: "\\0", Line: 1},
+	})
+
+	_ = p.Parse()
+	errs := p.Errors
+
+	assert.Len(t, errs, 1)
+
+}

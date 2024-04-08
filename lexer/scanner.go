@@ -6,7 +6,8 @@ import (
 )
 
 type ErrorHandler interface {
-	handleError(line int, message string)
+	HandleError(line int, message string)
+	Report(line int, where string, message string)
 }
 
 type Scanner struct {
@@ -145,8 +146,7 @@ func (s *Scanner) scanToken() {
 		} else if isAlpha(c) {
 			s.identifier()
 		} else {
-			s.errorHandler.handleError(s.line, "unexpected character")
-
+			s.errorHandler.HandleError(s.line, "unexpected character")
 		}
 	}
 }
@@ -206,7 +206,7 @@ func (s *Scanner) eatString() {
 	}
 
 	if s.isAtEnd() {
-		s.errorHandler.handleError(s.line, "unterminated string")
+		s.errorHandler.HandleError(s.line, "unterminated string")
 		return
 	}
 
@@ -257,7 +257,7 @@ func (s *Scanner) number() {
 	}
 
 	if float, err := strconv.ParseFloat(s.source[s.start:s.current], 32); err != nil {
-		s.errorHandler.handleError(s.line, "there was an error parsing the number")
+		s.errorHandler.HandleError(s.line, "there was an error parsing the number")
 	} else {
 		s.addTokenWithLiteral(NUMBER, float)
 	}

@@ -1,10 +1,16 @@
 package parser
 
-import "github.com/brandonshearin/go-lox/lexer"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/brandonshearin/go-lox/lexer"
+)
 
 type Parser struct {
 	Tokens  []lexer.Token
 	Current int
+	Errors  []string
 }
 
 func NewParser(tokens []lexer.Token) *Parser {
@@ -12,6 +18,10 @@ func NewParser(tokens []lexer.Token) *Parser {
 		Current: 0,
 		Tokens:  tokens,
 	}
+}
+
+func (p *Parser) Parse() Expr {
+	return p.expression()
 }
 
 // expression → equality ;
@@ -132,6 +142,9 @@ func (p *Parser) primary() Expr {
 		}
 	}
 
+	// if we reach here, throw a syntax error
+	p.handleError(p.peek(), "Expect expression.")
+
 	return nil
 }
 
@@ -145,6 +158,59 @@ func (p *Parser) match(types ...lexer.TokenType) bool {
 	}
 
 	return false
+}
+
+func (p *Parser) consume(tokenType lexer.TokenType, message string) lexer.Token {
+	if p.check(tokenType) {
+		return p.advance()
+	} else {
+		p.handleError(p.peek(), message)
+		return lexer.Token{}
+	}
+}
+
+var (
+	ErrParse = errors.New("parse error")
+)
+
+func (p *Parser) handleError(token lexer.Token, message string) error {
+	if token.TokenType == lexer.EOF {
+
+		msg := formatErrorMessage(token.Line, " at end", message)
+		p.Errors = append(p.Errors, msg)
+	} else {
+		msg := formatErrorMessage(token.Line, fmt.Sprintf(" at %s", token.Lexeme), message)
+		p.Errors = append(p.Errors, msg)
+	}
+	return ErrParse
+}
+
+func formatErrorMessage(line int, where string, message string) string {
+	return fmt.Sprintf("[line %d] Error %s: %s", line, where, message)
+}
+
+func (p *Parser) synchronize() {
+	p.advance()
+
+	for !p.isAtEnd() {
+		if p.previous().TokenType == lexer.SEMICOLON {
+			return
+		}
+
+		switch p.peek().TokenType {
+		case lexer.CLASS:
+		case lexer.FUN:
+		case lexer.VAR:
+		case lexer.FOR:
+		case lexer.IF:
+		case lexer.WHILE:
+		case lexer.PRINT:
+		case lexer.RETURN:
+			return
+		}
+
+		p.advance()
+	}
 }
 
 func (p *Parser) check(tokenType lexer.TokenType) bool {

@@ -80,11 +80,11 @@ func (l *Lox) run(source string) {
 }
 
 // TODO: maybe collect error messages in a slice on the Lox struct for test assertions
-func (l *Lox) handleError(line int, message string) {
-	l.report(line, "", message)
+func (l *Lox) HandleError(line int, message string) {
+	l.Report(line, "", message)
 }
 
-func (l *Lox) report(line int, where, message string) {
+func (l *Lox) Report(line int, where string, message string) {
 	l.hadError = true
 	fmt.Println("[line ", line, "] Error ", where, ": ", message)
 }
