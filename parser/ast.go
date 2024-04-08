@@ -6,7 +6,7 @@ import (
 
 type Expr interface {
 	Expression()
-	Accept(visitor Visitor) string
+	Accept(visitor Visitor) (any, error)
 }
 
 type LiteralExpr struct {
@@ -17,8 +17,8 @@ type LiteralExpr struct {
 
 func (l *LiteralExpr) Expression() {}
 
-func (l *LiteralExpr) Accept(visitor Visitor) string {
-	return visitor.VisitLiteralExpr(l).(string)
+func (l *LiteralExpr) Accept(visitor Visitor) (any, error) {
+	return visitor.VisitLiteralExpr(l)
 }
 
 type UnaryExpr struct {
@@ -29,8 +29,8 @@ type UnaryExpr struct {
 
 func (u *UnaryExpr) Expression() {}
 
-func (u *UnaryExpr) Accept(visitor Visitor) string {
-	return visitor.VisitUnaryExpr(u).(string)
+func (u *UnaryExpr) Accept(visitor Visitor) (any, error) {
+	return visitor.VisitUnaryExpr(u)
 }
 
 type BinaryExpr struct {
@@ -41,8 +41,8 @@ type BinaryExpr struct {
 
 func (b *BinaryExpr) Expression() {}
 
-func (b *BinaryExpr) Accept(visitor Visitor) string {
-	return visitor.VisitBinaryExpr(b).(string)
+func (b *BinaryExpr) Accept(visitor Visitor) (any, error) {
+	return visitor.VisitBinaryExpr(b)
 }
 
 type GroupingExpr struct {
@@ -51,8 +51,8 @@ type GroupingExpr struct {
 
 func (g *GroupingExpr) Expression() {}
 
-func (g *GroupingExpr) Accept(visitor Visitor) string {
-	return visitor.VisitGroupingExpr(g).(string)
+func (g *GroupingExpr) Accept(visitor Visitor) (any, error) {
+	return visitor.VisitGroupingExpr(g)
 }
 
 // TODO: is this jank?

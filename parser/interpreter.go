@@ -9,81 +9,115 @@ import (
 type Interpreter struct {
 }
 
-func (s *Interpreter) VisitLiteralExpr(expr *LiteralExpr) any {
-	return expr.Value
+func (s *Interpreter) Interpret(expr Expr) {
+	value, err := s.evaluate(expr)
+	if err != nil {
+
+	} else {
+		fmt.Println(value)
+	}
 }
 
-func (s *Interpreter) VisitGroupingExpr(expr *GroupingExpr) any {
+func (s *Interpreter) evaluate(expr Expr) (any, error) {
+	return expr.Accept(s)
+}
+
+func (s *Interpreter) VisitLiteralExpr(expr *LiteralExpr) (any, error) {
+	return expr.Value, nil
+}
+
+func (s *Interpreter) VisitGroupingExpr(expr *GroupingExpr) (any, error) {
 	return s.evaluate(expr.Expr)
 }
 
-func (s *Interpreter) VisitUnaryExpr(expr *UnaryExpr) any {
-	right := s.evaluate(expr.Expr)
-
-	switch expr.Operator.TokenType {
-	case lexer.BANG:
-		return !isTruthy(right)
-	case lexer.MINUS:
-		checkNumberOperand(lexer.Token(expr.Operator), right)
-		return -right.(float64)
+func (s *Interpreter) VisitUnaryExpr(expr *UnaryExpr) (any, error) {
+	if right, err := s.evaluate(expr.Expr); err != nil {
+		return nil, err
+	} else {
+		switch expr.Operator.TokenType {
+		case lexer.BANG:
+			return !isTruthy(right), nil
+		case lexer.MINUS:
+			if err := checkNumberOperand(lexer.Token(expr.Operator), right); err != nil {
+				return nil, err
+			} else {
+				return -right.(float64), nil
+			}
+		}
 	}
 
-	return nil
+	return nil, nil
 }
 
-func (s *Interpreter) VisitBinaryExpr(expr *BinaryExpr) any {
-	left := s.evaluate(expr.LeftExpr)
-	right := s.evaluate(expr.RightExpr)
+func (s *Interpreter) VisitBinaryExpr(expr *BinaryExpr) (any, error) {
+	if left, err := s.evaluate(expr.LeftExpr); err != nil {
+		return nil, err
+	} else if right, err := s.evaluate(expr.RightExpr); err != nil {
+		return nil, err
+	} else {
+		switch expr.Operator.TokenType {
+		case lexer.MINUS:
+			if err := checkNumberOperands(lexer.Token(expr.Operator), left, right); err != nil {
+				return nil, err
+			}
+			return left.(float64) - right.(float64), nil
+		case lexer.SLASH:
+			if err := checkNumberOperands(lexer.Token(expr.Operator), left, right); err != nil {
+				return nil, err
+			}
+			return left.(float64) / right.(float64), nil
+		case lexer.STAR:
+			if err := checkNumberOperands(lexer.Token(expr.Operator), left, right); err != nil {
+				return nil, err
+			}
+			return left.(float64) * right.(float64), nil
+		case lexer.PLUS:
+			leftNum, leftIsNumber := left.(float64)
+			rightNum, rightIsNumber := right.(float64)
 
-	switch expr.Operator.TokenType {
-	case lexer.MINUS:
-		// if err := checkNumberOperands(lexer.Token(expr.Operator), left, right); err != nil {
-		// 	return nil, err
-		// }
-		return left.(float64) - right.(float64)
-	case lexer.SLASH:
-		checkNumberOperands(lexer.Token(expr.Operator), left, right)
-		return left.(float64) / right.(float64)
-	case lexer.STAR:
-		checkNumberOperands(lexer.Token(expr.Operator), left, right)
-		return left.(float64) * right.(float64)
-	case lexer.PLUS:
-		leftNum, leftIsNumber := left.(float64)
-		rightNum, rightIsNumber := right.(float64)
+			if leftIsNumber && rightIsNumber {
+				return leftNum + rightNum, nil
+			}
 
-		if leftIsNumber && rightIsNumber {
-			return leftNum + rightNum
+			leftStr, leftIsString := left.(string)
+			rightStr, rightIsString := right.(string)
+
+			if leftIsString && rightIsString {
+				return leftStr + rightStr, nil
+			}
+
+			return nil, &RuntimeError{
+				Token:   lexer.Token(expr.Operator),
+				Message: "operands must be two numbers or two strings.",
+			}
+		case lexer.GREATER:
+			if err := checkNumberOperands(lexer.Token(expr.Operator), left, right); err != nil {
+				return nil, err
+			}
+			return left.(float64) > right.(float64), nil
+		case lexer.GREATER_EQUAL:
+			if err := checkNumberOperands(lexer.Token(expr.Operator), left, right); err != nil {
+				return nil, err
+			}
+			return left.(float64) >= right.(float64), nil
+		case lexer.LESS:
+			if err := checkNumberOperands(lexer.Token(expr.Operator), left, right); err != nil {
+				return nil, err
+			}
+			return left.(float64) < right.(float64), nil
+		case lexer.LESS_EQUAL:
+			if err := checkNumberOperands(lexer.Token(expr.Operator), left, right); err != nil {
+				return nil, err
+			}
+			return left.(float64) <= right.(float64), nil
+		case lexer.BANG_EQUAL:
+			return !isEqual(left, right), nil
+		case lexer.EQUAL_EQUAL:
+			return isEqual(left, right), nil
 		}
-
-		leftStr, leftIsString := left.(string)
-		rightStr, rightIsString := right.(string)
-
-		if leftIsString && rightIsString {
-			return leftStr + rightStr
-		}
-	case lexer.GREATER:
-		checkNumberOperands(lexer.Token(expr.Operator), left, right)
-		return left.(float64) > right.(float64)
-	case lexer.GREATER_EQUAL:
-		checkNumberOperands(lexer.Token(expr.Operator), left, right)
-		return left.(float64) >= right.(float64)
-	case lexer.LESS:
-		checkNumberOperands(lexer.Token(expr.Operator), left, right)
-		return left.(float64) < right.(float64)
-	case lexer.LESS_EQUAL:
-		checkNumberOperands(lexer.Token(expr.Operator), left, right)
-		return left.(float64) <= right.(float64)
-	case lexer.BANG_EQUAL:
-		return !isEqual(left, right)
-	case lexer.EQUAL_EQUAL:
-		return isEqual(left, right)
 	}
 
-	return nil
-}
-
-func (s *Interpreter) evaluate(expr Expr) any {
-	return expr.Accept(s)
+	return nil, nil
 }
 
 func isTruthy(obj any) bool {
