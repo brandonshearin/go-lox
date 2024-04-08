@@ -33,7 +33,7 @@ func main() {
 				Line:      1,
 			},
 			Expr: &parser.LiteralExpr{
-				Literal: "123",
+				Value: "123",
 			},
 		},
 		Operator: parser.Operator{
@@ -44,7 +44,7 @@ func main() {
 		},
 		RightExpr: &parser.GroupingExpr{
 			Expr: &parser.LiteralExpr{
-				Literal: "45.67",
+				Value: "45.67",
 			},
 		},
 	}

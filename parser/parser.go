@@ -116,21 +116,21 @@ func (p *Parser) unary() Expr {
 func (p *Parser) primary() Expr {
 	if p.match(lexer.NUMBER, lexer.STRING) {
 		return &LiteralExpr{
-			Literal: p.previous().Lexeme,
+			Value: p.previous().Literal,
 		}
 	}
 
 	if p.match(lexer.TRUE, lexer.FALSE) {
 		return &LiteralExpr{
-			Literal:   p.previous().Lexeme,
+			Value:     p.previous().Literal,
 			IsBoolean: true,
 		}
 	}
 
 	if p.match(lexer.NIL) {
 		return &LiteralExpr{
-			Literal: p.previous().Lexeme,
-			IsNil:   true,
+			Value: p.previous().Literal,
+			IsNil: true,
 		}
 	}
 
