@@ -6,11 +6,6 @@ import (
 	"unicode"
 )
 
-// type ErrorHandler interface {
-// 	HandleError(line int, message string)
-// 	Report(line int, where string, message string)
-// }
-
 type Scanner struct {
 	// stores the original source code
 	source string
@@ -147,7 +142,7 @@ func (s *Scanner) scanToken() {
 		} else if isAlpha(c) {
 			s.identifier()
 		} else {
-			s.handleError(s.line, "unexpected character")
+			s.handleError(s.line, fmt.Sprintf("unexpected character %s", c))
 		}
 	}
 }
