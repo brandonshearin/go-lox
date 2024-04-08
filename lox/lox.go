@@ -1,20 +1,25 @@
-package lexer
+package lox
 
 import (
 	"bufio"
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/brandonshearin/go-lox/lexer"
+	"github.com/brandonshearin/go-lox/parser"
 )
 
 func NewLox() *Lox {
 	return &Lox{
-		hadError: false,
+		hadError:        false,
+		hadRuntimeError: false,
 	}
 }
 
 type Lox struct {
-	hadError bool
+	hadError        bool
+	hadRuntimeError bool
 }
 
 func (l *Lox) RunFile(filename string) error {
@@ -53,10 +58,30 @@ func (l *Lox) RunPrompt() {
 
 func (l *Lox) run(source string) {
 
-	s := NewScanner(source)
+	s := lexer.NewScanner(source)
 
-	for _, token := range s.ScanTokens() {
-		fmt.Println(token.String())
+	tokens := s.ScanTokens()
+
+	if l.hadError {
+		fmt.Println(">>> lexical error occurred")
+		fmt.Println(s.Errors)
+		return
+	}
+
+	p := parser.NewParser(tokens)
+	ast := p.Parse()
+
+	if l.hadError {
+		fmt.Println(">>> syntax error occurred")
+		fmt.Println(s.Errors)
+		return
+	}
+
+	interpreter := parser.Interpreter{}
+	if value, err := interpreter.Interpret(ast); err != nil {
+		l.HandleRuntimeError(*err)
+	} else {
+		fmt.Println(">>> ast interpreter successfully", value)
 	}
 
 	// Create a new scanner from the source string
@@ -87,4 +112,9 @@ func (l *Lox) HandleError(line int, message string) {
 func (l *Lox) Report(line int, where string, message string) {
 	l.hadError = true
 	fmt.Println("[line ", line, "] Error ", where, ": ", message)
+}
+
+func (l *Lox) HandleRuntimeError(e parser.RuntimeError) {
+	fmt.Println(e.Message, "\n[line ], ", e.Token.Line, "]")
+	l.hadRuntimeError = true
 }

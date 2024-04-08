@@ -1,8 +1,6 @@
 package parser
 
-import (
-	"github.com/brandonshearin/go-lox/lexer"
-)
+import "github.com/brandonshearin/go-lox/lexer"
 
 type Expr interface {
 	Expression()

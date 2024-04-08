@@ -5,12 +5,13 @@ import (
 	"os"
 
 	"github.com/brandonshearin/go-lox/lexer"
+	"github.com/brandonshearin/go-lox/lox"
 	"github.com/brandonshearin/go-lox/parser"
 )
 
-func main_old() {
+func main() {
 
-	lox := lexer.NewLox()
+	lox := lox.NewLox()
 	// a file was provided. os.Args[0] is the program name, os.Args[1] is the first argument
 	if len(os.Args) == 2 {
 		err := lox.RunFile(os.Args[1])
@@ -23,7 +24,7 @@ func main_old() {
 
 }
 
-func main() {
+func main_old() {
 	expr := &parser.BinaryExpr{
 		LeftExpr: &parser.UnaryExpr{
 			Operator: parser.Operator{

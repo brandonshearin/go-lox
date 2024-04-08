@@ -1,27 +1,28 @@
 package lexer
 
 import (
+	"fmt"
 	"strconv"
 	"unicode"
 )
 
-type ErrorHandler interface {
-	HandleError(line int, message string)
-	Report(line int, where string, message string)
-}
+// type ErrorHandler interface {
+// 	HandleError(line int, message string)
+// 	Report(line int, where string, message string)
+// }
 
 type Scanner struct {
 	// stores the original source code
 	source string
 	tokens []Token
 
+	Errors []string
+
 	start   int
 	current int
 	line    int
 
 	reservedWords map[string]TokenType
-
-	errorHandler ErrorHandler
 }
 
 func NewScanner(source string) *Scanner {
@@ -52,7 +53,7 @@ func NewScanner(source string) *Scanner {
 		line:          1,
 		reservedWords: reservedWords,
 		// TODO: not sure what the best way to handle errors so hook into Lox for now
-		errorHandler: NewLox(),
+		// errorHandler: lox.NewLox(),
 	}
 }
 
@@ -146,7 +147,7 @@ func (s *Scanner) scanToken() {
 		} else if isAlpha(c) {
 			s.identifier()
 		} else {
-			s.errorHandler.HandleError(s.line, "unexpected character")
+			s.handleError(s.line, "unexpected character")
 		}
 	}
 }
@@ -206,7 +207,7 @@ func (s *Scanner) eatString() {
 	}
 
 	if s.isAtEnd() {
-		s.errorHandler.HandleError(s.line, "unterminated string")
+		s.handleError(s.line, "unterminated string")
 		return
 	}
 
@@ -257,7 +258,7 @@ func (s *Scanner) number() {
 	}
 
 	if float, err := strconv.ParseFloat(s.source[s.start:s.current], 32); err != nil {
-		s.errorHandler.HandleError(s.line, "there was an error parsing the number")
+		s.handleError(s.line, "there was an error parsing the number")
 	} else {
 		s.addTokenWithLiteral(NUMBER, float)
 	}
@@ -274,4 +275,13 @@ func (s *Scanner) identifier() {
 	} else {
 		s.addTokenWithLiteral(IDENTIFIER, ident)
 	}
+}
+
+func formatErrorMessage(line int, message string) string {
+	return fmt.Sprintf("[line %d] Error %s", line, message)
+}
+
+func (s *Scanner) handleError(line int, message string) {
+	msg := formatErrorMessage(line, message)
+	s.Errors = append(s.Errors, msg)
 }

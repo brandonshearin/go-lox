@@ -9,12 +9,13 @@ import (
 type Interpreter struct {
 }
 
-func (s *Interpreter) Interpret(expr Expr) {
+func (s *Interpreter) Interpret(expr Expr) (any, *RuntimeError) {
 	value, err := s.evaluate(expr)
 	if err != nil {
-
+		e := err.(*RuntimeError)
+		return nil, e
 	} else {
-		fmt.Println(value)
+		return value, nil
 	}
 }
 
