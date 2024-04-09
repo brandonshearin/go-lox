@@ -6,19 +6,21 @@ import (
 	"github.com/brandonshearin/go-lox/lexer"
 )
 
+// Interpreter implements `ExprVisitor` interface and `StmtVisitor` interface
 type Interpreter struct {
 }
 
-func (s *Interpreter) Interpret(expr Expr) (any, *RuntimeError) {
-	value, err := s.evaluate(expr)
-	if err != nil {
-		e := err.(*RuntimeError)
-		return nil, e
-	} else {
-		return value, nil
+func (s *Interpreter) Interpret(stmts []Stmt) *RuntimeError {
+	for _, stmt := range stmts {
+		if err := s.execute(stmt); err != nil {
+			e := err.(*RuntimeError)
+			return e
+		}
 	}
+	return nil
 }
 
+// ExprVisitor implementation below ----------------------------------------------------------------
 func (s *Interpreter) evaluate(expr Expr) (any, error) {
 	return expr.Accept(s)
 }
@@ -176,4 +178,25 @@ type RuntimeError struct {
 
 func (e *RuntimeError) Error() string {
 	return fmt.Sprintf("Operator: %s, Message: %s", e.Token.Lexeme, e.Message)
+}
+
+// StmtVisitor implementation below ----------------------------------------------------------------
+func (s *Interpreter) execute(stmt Stmt) error {
+	return stmt.Accept(s)
+}
+
+func (s *Interpreter) VisitPrintStmt(stmt *PrintStmt) error {
+	if val, err := s.evaluate(stmt.Expr); err != nil {
+		return err
+	} else {
+		fmt.Println(val)
+	}
+	return nil
+}
+
+func (s *Interpreter) VisitExpressionStmt(stmt *ExpressionStatement) error {
+	if _, err := s.evaluate(stmt.Expr); err != nil {
+		return err
+	}
+	return nil
 }

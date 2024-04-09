@@ -5,13 +5,6 @@ import (
 	"strings"
 )
 
-type Visitor interface {
-	VisitBinaryExpr(expr *BinaryExpr) (any, error)
-	VisitUnaryExpr(expr *UnaryExpr) (any, error)
-	VisitGroupingExpr(expr *GroupingExpr) (any, error)
-	VisitLiteralExpr(expr *LiteralExpr) (any, error)
-}
-
 // ASTPrinter implements the visitor interface
 type ASTPrinter struct{}
 

@@ -78,30 +78,9 @@ func (l *Lox) run(source string) {
 	}
 
 	interpreter := parser.Interpreter{}
-	if value, err := interpreter.Interpret(ast); err != nil {
+	if err := interpreter.Interpret(ast); err != nil {
 		l.HandleRuntimeError(*err)
-	} else {
-		fmt.Println(">>> ast interpreter successfully", value)
 	}
-
-	// Create a new scanner from the source string
-	// scanner := bufio.NewScanner(strings.NewReader(source))
-
-	// // Set the split function for the scanning operation. lets break on words
-	// scanner.Split(bufio.ScanWords)
-
-	// // Create a slice to hold the tokens
-	// var tokens []string
-
-	// // Loop over the lines in the input and append them to the tokens slice
-	// for scanner.Scan() {
-	// 	tokens = append(tokens, scanner.Text())
-	// }
-
-	// // for now, just print the tokens
-	// for _, token := range tokens {
-	// 	fmt.Println(token)
-	// }
 }
 
 // TODO: maybe collect error messages in a slice on the Lox struct for test assertions

@@ -20,8 +20,42 @@ func NewParser(tokens []lexer.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() Expr {
-	return p.expression()
+func (p *Parser) Parse() []Stmt {
+	stmts := []Stmt{}
+
+	for !p.isAtEnd() {
+		stmts = append(stmts, p.statement())
+	}
+
+	return stmts
+}
+
+func (p *Parser) statement() Stmt {
+	if p.match(lexer.PRINT) {
+		return p.printStatement()
+	}
+
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() Stmt {
+	value := p.expression()
+
+	p.consume(lexer.SEMICOLON, "expect ';' after expression.")
+
+	return &PrintStmt{
+		Expr: value,
+	}
+}
+
+func (p *Parser) expressionStatement() Stmt {
+	expr := p.expression()
+
+	p.consume(lexer.SEMICOLON, "expect ';' after expression.")
+
+	return &ExpressionStatement{
+		Expr: expr,
+	}
 }
 
 // expression → equality ;

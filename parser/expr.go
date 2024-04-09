@@ -4,7 +4,7 @@ import "github.com/brandonshearin/go-lox/lexer"
 
 type Expr interface {
 	Expression()
-	Accept(visitor Visitor) (any, error)
+	Accept(visitor ExprVisitor) (any, error)
 }
 
 type LiteralExpr struct {
@@ -15,7 +15,7 @@ type LiteralExpr struct {
 
 func (l *LiteralExpr) Expression() {}
 
-func (l *LiteralExpr) Accept(visitor Visitor) (any, error) {
+func (l *LiteralExpr) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitLiteralExpr(l)
 }
 
@@ -27,7 +27,7 @@ type UnaryExpr struct {
 
 func (u *UnaryExpr) Expression() {}
 
-func (u *UnaryExpr) Accept(visitor Visitor) (any, error) {
+func (u *UnaryExpr) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitUnaryExpr(u)
 }
 
@@ -39,7 +39,7 @@ type BinaryExpr struct {
 
 func (b *BinaryExpr) Expression() {}
 
-func (b *BinaryExpr) Accept(visitor Visitor) (any, error) {
+func (b *BinaryExpr) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitBinaryExpr(b)
 }
 
@@ -49,7 +49,7 @@ type GroupingExpr struct {
 
 func (g *GroupingExpr) Expression() {}
 
-func (g *GroupingExpr) Accept(visitor Visitor) (any, error) {
+func (g *GroupingExpr) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitGroupingExpr(g)
 }
 
