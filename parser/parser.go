@@ -120,9 +120,17 @@ func (p *Parser) primary() Expr {
 		}
 	}
 
-	if p.match(lexer.TRUE, lexer.FALSE) {
+	// our lexer doesn't support storing raw boolean values in the tokens it emits, so account for that here instead
+	if p.match(lexer.TRUE) {
 		return &LiteralExpr{
-			Value:     p.previous().Literal,
+			Value:     true,
+			IsBoolean: true,
+		}
+	}
+
+	if p.match(lexer.FALSE) {
+		return &LiteralExpr{
+			Value:     false,
 			IsBoolean: true,
 		}
 	}

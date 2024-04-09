@@ -1,6 +1,9 @@
 package parser
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type Visitor interface {
 	VisitBinaryExpr(expr *BinaryExpr) (any, error)
@@ -30,11 +33,29 @@ func (a *ASTPrinter) VisitGroupingExpr(expr *GroupingExpr) (any, error) {
 }
 
 func (a *ASTPrinter) VisitLiteralExpr(expr *LiteralExpr) (any, error) {
-	if expr.Value == "" {
+	// handle nil
+	if expr.IsNil {
 		return "nil", nil
 	}
 
-	return expr.Value.(string), nil
+	// handle booleans
+	if expr.IsBoolean {
+		if expr.Value.(bool) {
+			return "true", nil
+		} else {
+			return "false", nil
+		}
+	}
+
+	switch expr.Value.(type) {
+	case string:
+		return expr.Value.(string), nil
+	case float64:
+		return fmt.Sprintf("%.2f", expr.Value), nil
+	}
+
+	return nil, fmt.Errorf("encountered error printing LiteralExpr: %+v ", expr)
+
 }
 
 func (a *ASTPrinter) parenthesize(name string, expr ...Expr) string {
