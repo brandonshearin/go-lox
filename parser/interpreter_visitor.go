@@ -194,7 +194,7 @@ func (s *Interpreter) VisitPrintStmt(stmt *PrintStmt) error {
 	return nil
 }
 
-func (s *Interpreter) VisitExpressionStmt(stmt *ExpressionStatement) error {
+func (s *Interpreter) VisitExpressionStmt(stmt *ExpressionStmt) error {
 	if _, err := s.evaluate(stmt.Expr); err != nil {
 		return err
 	}

@@ -24,10 +24,45 @@ func (p *Parser) Parse() []Stmt {
 	stmts := []Stmt{}
 
 	for !p.isAtEnd() {
-		stmts = append(stmts, p.statement())
+		stmts = append(stmts, p.declaration())
 	}
 
 	return stmts
+}
+
+// declaration    → varDecl | statement ;
+func (p *Parser) declaration() Stmt {
+	var stmt Stmt
+
+	if p.match(lexer.VAR) {
+		stmt = p.varDeclaration()
+	} else {
+		stmt = p.statement()
+	}
+	// TODO: whats the best way to handle errors
+	if len(p.Errors) > 0 {
+		p.synchronize()
+		return nil
+	}
+
+	return stmt
+}
+
+// varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
+func (p *Parser) varDeclaration() Stmt {
+	name := p.consume(lexer.IDENTIFIER, "expect variable name.")
+
+	var initializer Expr
+	if p.match(lexer.EQUAL) {
+		initializer = p.expression()
+	}
+
+	p.consume(lexer.SEMICOLON, "expect ';' after variable declaration.")
+
+	return &VariableDeclarationStmt{
+		Name:        name,
+		Initializer: initializer,
+	}
 }
 
 func (p *Parser) statement() Stmt {
@@ -53,7 +88,7 @@ func (p *Parser) expressionStatement() Stmt {
 
 	p.consume(lexer.SEMICOLON, "expect ';' after expression.")
 
-	return &ExpressionStatement{
+	return &ExpressionStmt{
 		Expr: expr,
 	}
 }
@@ -146,7 +181,7 @@ func (p *Parser) unary() Expr {
 	return p.primary()
 }
 
-// primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+// primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER ;
 func (p *Parser) primary() Expr {
 	if p.match(lexer.NUMBER, lexer.STRING) {
 		return &LiteralExpr{
@@ -181,6 +216,12 @@ func (p *Parser) primary() Expr {
 		p.consume(lexer.RIGHT_PAREN, "Expect '(' after expression)")
 		return &GroupingExpr{
 			Expr: expr,
+		}
+	}
+
+	if p.match(lexer.IDENTIFIER) {
+		return &VariableExpr{
+			Name: p.previous(),
 		}
 	}
 

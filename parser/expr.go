@@ -55,3 +55,10 @@ func (g *GroupingExpr) Accept(visitor ExprVisitor) (any, error) {
 
 // TODO: is this jank?
 type Operator lexer.Token
+
+type VariableExpr struct {
+	Name lexer.Token
+}
+
+func (v *VariableExpr) Expression()                             {}
+func (v *VariableExpr) Accept(visitor ExprVisitor) (any, error) { return nil, nil }

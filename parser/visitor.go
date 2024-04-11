@@ -9,5 +9,5 @@ type ExprVisitor interface {
 
 type StmtVisitor interface {
 	VisitPrintStmt(stmt *PrintStmt) error
-	VisitExpressionStmt(stmt *ExpressionStatement) error
+	VisitExpressionStmt(stmt *ExpressionStmt) error
 }
