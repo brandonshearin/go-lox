@@ -134,6 +134,16 @@ func (s *Interpreter) VisitVariableExpr(expr *VariableExpr) (any, error) {
 	return s.Environment.Get(expr.Name)
 }
 
+func (s *Interpreter) VisitAssignExpr(expr *AssignExpr) (any, error) {
+	if value, err := s.evaluate(expr.Value); err != nil {
+		return nil, err
+	} else if err := s.Environment.Assign(expr.Name, value); err != nil {
+		return nil, err
+	} else {
+		return value, nil
+	}
+}
+
 func isTruthy(obj any) bool {
 	if obj == nil {
 		return false

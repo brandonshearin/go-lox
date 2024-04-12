@@ -54,6 +54,11 @@ func (a *ASTPrinter) VisitVariableExpr(expr *VariableExpr) (any, error) {
 	return expr.Name.Lexeme, nil
 }
 
+// todo: not sure how to handle
+func (a *ASTPrinter) VisitAssignExpr(expr *AssignExpr) (any, error) {
+	return expr.Name.Lexeme, nil
+}
+
 func (a *ASTPrinter) parenthesize(name string, expr ...Expr) string {
 	var builder strings.Builder
 

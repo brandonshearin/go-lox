@@ -64,3 +64,11 @@ func (v *VariableExpr) Expression() {}
 func (v *VariableExpr) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitVariableExpr(v)
 }
+
+type AssignExpr struct {
+	Name  lexer.Token
+	Value Expr
+}
+
+func (a *AssignExpr) Expression()                             {}
+func (a *AssignExpr) Accept(visitor ExprVisitor) (any, error) { return nil, nil }

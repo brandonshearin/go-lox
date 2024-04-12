@@ -30,3 +30,16 @@ func (e *Environment) Get(name lexer.Token) (any, error) {
 		Message: fmt.Sprintf("undefined variable '%s'.", name.Lexeme),
 	}
 }
+
+func (e *Environment) Assign(name lexer.Token, value any) error {
+	if _, ok := e.Values[name.Lexeme]; ok {
+		e.Values[name.Lexeme] = value
+	} else {
+		return &RuntimeError{
+			Token:   name,
+			Message: fmt.Sprintf("undefined variable '%s'.", name.Lexeme),
+		}
+	}
+
+	return nil
+}

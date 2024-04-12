@@ -6,6 +6,7 @@ type ExprVisitor interface {
 	VisitGroupingExpr(expr *GroupingExpr) (any, error)
 	VisitLiteralExpr(expr *LiteralExpr) (any, error)
 	VisitVariableExpr(expr *VariableExpr) (any, error)
+	VisitAssignExpr(expr *AssignExpr) (any, error)
 }
 
 type StmtVisitor interface {

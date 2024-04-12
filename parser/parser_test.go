@@ -282,3 +282,16 @@ func TestVarDecl(t *testing.T) {
 
 	assert.IsType(t, &VariableDeclarationStmt{}, stmts[0])
 }
+
+func TestAssignExpr(t *testing.T) {
+	// l-value is a `VariableExpr`
+	source := "a = 1;"
+	tokens := lexer.NewScanner(source).ScanTokens()
+
+	// parse tokens into expression AST
+	p := NewParser(tokens)
+	ast := p.declaration()
+
+	assert.IsType(t, &AssignExpr{}, ast.(*ExpressionStmt).Expr)
+	assert.Equal(t, "a", ast.(*ExpressionStmt).Expr.(*AssignExpr).Name.Lexeme)
+}

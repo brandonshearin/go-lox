@@ -93,9 +93,35 @@ func (p *Parser) expressionStatement() Stmt {
 	}
 }
 
-// expression → equality ;
+// expression → assignment ;
 func (p *Parser) expression() Expr {
-	return p.equality()
+	return p.assignment()
+}
+
+// assignment → IDENTIFIER "=" assignment | equality ;
+func (p *Parser) assignment() Expr {
+	// expr holds the l-value of the assignment.
+	expr := p.equality()
+
+	// after parsing the l-value, if an = operator exists, then pass the r-value of the assignment
+	if p.match(lexer.EQUAL) {
+		equalsTok := p.previous()
+		value := p.assignment()
+
+		// the only valid l-value type we accept right now is a variable. ie expressions like `a = "hello"; b = 1234;`
+		if variableExpr, ok := expr.(*VariableExpr); ok {
+			name := variableExpr.Name
+
+			return &AssignExpr{
+				Name:  name,
+				Value: value,
+			}
+		} else {
+			p.handleError(equalsTok, "invalid assignment target")
+		}
+	}
+
+	return expr
 }
 
 // equality → comparison ( ( "!=" | "==" ) comparison )* ;
