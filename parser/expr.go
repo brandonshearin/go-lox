@@ -60,5 +60,7 @@ type VariableExpr struct {
 	Name lexer.Token
 }
 
-func (v *VariableExpr) Expression()                             {}
-func (v *VariableExpr) Accept(visitor ExprVisitor) (any, error) { return nil, nil }
+func (v *VariableExpr) Expression() {}
+func (v *VariableExpr) Accept(visitor ExprVisitor) (any, error) {
+	return visitor.VisitVariableExpr(v)
+}

@@ -48,7 +48,10 @@ func (a *ASTPrinter) VisitLiteralExpr(expr *LiteralExpr) (any, error) {
 	}
 
 	return nil, fmt.Errorf("encountered error printing LiteralExpr: %+v ", expr)
+}
 
+func (a *ASTPrinter) VisitVariableExpr(expr *VariableExpr) (any, error) {
+	return expr.Name.Lexeme, nil
 }
 
 func (a *ASTPrinter) parenthesize(name string, expr ...Expr) string {

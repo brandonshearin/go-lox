@@ -9,7 +9,7 @@ import (
 )
 
 func TestEqualityExpr(t *testing.T) {
-	// a EOF
+	// "a" EOF
 	p := NewParser([]lexer.Token{
 		{TokenType: lexer.STRING, Lexeme: "a", Literal: "a", Line: 1},
 		{TokenType: lexer.EOF, Line: 1},
@@ -22,7 +22,7 @@ func TestEqualityExpr(t *testing.T) {
 
 	assert.Equal(t, prettyPrinted, "a")
 
-	// a == b
+	// "a" == "b"
 	p = NewParser([]lexer.Token{
 		{TokenType: lexer.STRING, Lexeme: "a", Literal: "a", Line: 1},
 		{TokenType: lexer.EQUAL_EQUAL, Lexeme: "==", Literal: "==", Line: 1},
@@ -37,7 +37,7 @@ func TestEqualityExpr(t *testing.T) {
 
 	assert.Equal(t, prettyPrinted, "(== a b)")
 
-	// a != b
+	// "a" != "b"
 	p = NewParser([]lexer.Token{
 		{TokenType: lexer.STRING, Lexeme: "a", Literal: "a", Line: 1},
 		{TokenType: lexer.BANG_EQUAL, Lexeme: "!=", Literal: "!=", Line: 1},
@@ -52,7 +52,7 @@ func TestEqualityExpr(t *testing.T) {
 
 	assert.Equal(t, prettyPrinted, "(!= a b)")
 
-	// a == b == c
+	// "a" == "b" == "c"
 	p = NewParser([]lexer.Token{
 		{TokenType: lexer.STRING, Lexeme: "a", Literal: "a", Line: 1},
 		{TokenType: lexer.EQUAL_EQUAL, Lexeme: "==", Literal: "==", Line: 1},
@@ -71,7 +71,7 @@ func TestEqualityExpr(t *testing.T) {
 }
 
 func TestComparisonExpr(t *testing.T) {
-	// a == b > c
+	// "a" == "b" > "c"
 	p := NewParser([]lexer.Token{
 		{TokenType: lexer.STRING, Lexeme: "a", Literal: "a", Line: 1},
 		{TokenType: lexer.EQUAL_EQUAL, Lexeme: "==", Literal: "==", Line: 1},
@@ -183,13 +183,43 @@ func TestPrecedence(t *testing.T) {
 }
 
 func TestLiterals(t *testing.T) {
-	// number literals -------------------------------- --------------------------------
-	source := "1"
+	// variable expressions----------------------------------------------------------------
+	source := "a == b"
 	tokens := lexer.NewScanner(source).ScanTokens()
 
-	// parse tokens into expression AST
 	p := NewParser(tokens)
 	exprAST := p.expression()
+
+	assert.IsType(t, &VariableExpr{}, exprAST.(*BinaryExpr).LeftExpr)
+	assert.IsType(t, &VariableExpr{}, exprAST.(*BinaryExpr).RightExpr)
+
+	// grouping expressions----------------------------------------------------------------
+	source = "(1 + 2)"
+	tokens = lexer.NewScanner(source).ScanTokens()
+
+	p = NewParser(tokens)
+	exprAST = p.expression()
+
+	assert.IsType(t, &GroupingExpr{}, exprAST)
+	assert.IsType(t, &BinaryExpr{}, exprAST.(*GroupingExpr).Expr)
+
+	source = "(a)"
+	tokens = lexer.NewScanner(source).ScanTokens()
+
+	p = NewParser(tokens)
+	exprAST = p.expression()
+
+	assert.IsType(t, &GroupingExpr{}, exprAST)
+	assert.IsType(t, &VariableExpr{}, exprAST.(*GroupingExpr).Expr)
+	assert.Equal(t, "a", exprAST.(*GroupingExpr).Expr.(*VariableExpr).Name.Lexeme)
+
+	// number literals -------------------------------- --------------------------------
+	source = "1"
+	tokens = lexer.NewScanner(source).ScanTokens()
+
+	// parse tokens into expression AST
+	p = NewParser(tokens)
+	exprAST = p.expression()
 
 	assert.IsType(t, &LiteralExpr{}, exprAST)
 	assert.IsType(t, float64(0), exprAST.(*LiteralExpr).Value)
@@ -229,4 +259,26 @@ func TestLiterals(t *testing.T) {
 	assert.IsType(t, &LiteralExpr{}, exprAST)
 	assert.IsType(t, string(""), exprAST.(*LiteralExpr).Value)
 	assert.Equal(t, "hello world", exprAST.(*LiteralExpr).Value)
+}
+
+func TestVarDecl(t *testing.T) {
+	source := "var hello = 1;"
+	tokens := lexer.NewScanner(source).ScanTokens()
+
+	// parse tokens into expression AST
+	p := NewParser(tokens)
+	ast := p.declaration()
+
+	assert.IsType(t, &VariableDeclarationStmt{}, ast)
+	assert.Equal(t, "hello", ast.(*VariableDeclarationStmt).Name.Lexeme)
+
+	// TODO: need to test how the synchronize() feature of the parser begins at the next statement.
+	source = "var hello = 1 \n var world = 2;"
+	tokens = lexer.NewScanner(source).ScanTokens()
+
+	// parse tokens into expression AST
+	p = NewParser(tokens)
+	stmts := p.Parse()
+
+	assert.IsType(t, &VariableDeclarationStmt{}, stmts[0])
 }

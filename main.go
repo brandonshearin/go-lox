@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/brandonshearin/go-lox/lexer"
 	"github.com/brandonshearin/go-lox/lox"
-	"github.com/brandonshearin/go-lox/parser"
 )
 
 func main() {
@@ -24,33 +22,33 @@ func main() {
 
 }
 
-func main_old() {
-	expr := &parser.BinaryExpr{
-		LeftExpr: &parser.UnaryExpr{
-			Operator: parser.Operator{
-				TokenType: lexer.MINUS,
-				Lexeme:    "-",
-				Literal:   "-",
-				Line:      1,
-			},
-			Expr: &parser.LiteralExpr{
-				Value: "123",
-			},
-		},
-		Operator: parser.Operator{
-			TokenType: lexer.STAR,
-			Lexeme:    "*",
-			Literal:   "*",
-			Line:      1,
-		},
-		RightExpr: &parser.GroupingExpr{
-			Expr: &parser.LiteralExpr{
-				Value: "45.67",
-			},
-		},
-	}
+// func main_old() {
+// 	expr := &parser.BinaryExpr{
+// 		LeftExpr: &parser.UnaryExpr{
+// 			Operator: parser.Operator{
+// 				TokenType: lexer.MINUS,
+// 				Lexeme:    "-",
+// 				Literal:   "-",
+// 				Line:      1,
+// 			},
+// 			Expr: &parser.LiteralExpr{
+// 				Value: "123",
+// 			},
+// 		},
+// 		Operator: parser.Operator{
+// 			TokenType: lexer.STAR,
+// 			Lexeme:    "*",
+// 			Literal:   "*",
+// 			Line:      1,
+// 		},
+// 		RightExpr: &parser.GroupingExpr{
+// 			Expr: &parser.LiteralExpr{
+// 				Value: "45.67",
+// 			},
+// 		},
+// 	}
 
-	ast := parser.ASTPrinter{}
+// 	ast := parser.ASTPrinter{}
 
-	fmt.Println(ast.Print(expr))
-}
+// 	fmt.Println(ast.Print(expr))
+// }

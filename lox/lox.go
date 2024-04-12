@@ -14,12 +14,17 @@ func NewLox() *Lox {
 	return &Lox{
 		hadError:        false,
 		hadRuntimeError: false,
+		// Lexer:           *lexer.NewScanner(),
+		Interpreter: *parser.NewInterpreter(),
 	}
 }
 
 type Lox struct {
 	hadError        bool
 	hadRuntimeError bool
+	// Lexer           lexer.Scanner
+	// Parser          parser.Parser/
+	Interpreter parser.Interpreter
 }
 
 func (l *Lox) RunFile(filename string) error {
@@ -77,8 +82,8 @@ func (l *Lox) run(source string) {
 		return
 	}
 
-	interpreter := parser.Interpreter{}
-	if err := interpreter.Interpret(ast); err != nil {
+	// interpreter := parser.NewInterpreter()
+	if err := l.Interpreter.Interpret(ast); err != nil {
 		l.HandleRuntimeError(*err)
 	}
 }

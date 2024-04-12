@@ -5,9 +5,11 @@ type ExprVisitor interface {
 	VisitUnaryExpr(expr *UnaryExpr) (any, error)
 	VisitGroupingExpr(expr *GroupingExpr) (any, error)
 	VisitLiteralExpr(expr *LiteralExpr) (any, error)
+	VisitVariableExpr(expr *VariableExpr) (any, error)
 }
 
 type StmtVisitor interface {
 	VisitPrintStmt(stmt *PrintStmt) error
 	VisitExpressionStmt(stmt *ExpressionStmt) error
+	VisitVariableDeclStmt(stmt *VariableDeclarationStmt) error
 }

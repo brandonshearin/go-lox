@@ -42,7 +42,7 @@ func (p *Parser) declaration() Stmt {
 	// TODO: whats the best way to handle errors
 	if len(p.Errors) > 0 {
 		p.synchronize()
-		return nil
+		return stmt
 	}
 
 	return stmt

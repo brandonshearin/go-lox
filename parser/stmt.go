@@ -30,5 +30,7 @@ type VariableDeclarationStmt struct {
 	Initializer Expr
 }
 
-func (v *VariableDeclarationStmt) Statement()                       {}
-func (v *VariableDeclarationStmt) Accept(visitor StmtVisitor) error { return nil }
+func (v *VariableDeclarationStmt) Statement() {}
+func (v *VariableDeclarationStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitVariableDeclStmt(v)
+}

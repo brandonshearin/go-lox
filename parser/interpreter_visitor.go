@@ -8,6 +8,13 @@ import (
 
 // Interpreter implements `ExprVisitor` interface and `StmtVisitor` interface
 type Interpreter struct {
+	Environment Environment
+}
+
+func NewInterpreter() *Interpreter {
+	return &Interpreter{
+		Environment: *NewEnvironment(),
+	}
 }
 
 func (s *Interpreter) Interpret(stmts []Stmt) *RuntimeError {
@@ -123,6 +130,10 @@ func (s *Interpreter) VisitBinaryExpr(expr *BinaryExpr) (any, error) {
 	return nil, nil
 }
 
+func (s *Interpreter) VisitVariableExpr(expr *VariableExpr) (any, error) {
+	return s.Environment.Get(expr.Name)
+}
+
 func isTruthy(obj any) bool {
 	if obj == nil {
 		return false
@@ -198,5 +209,20 @@ func (s *Interpreter) VisitExpressionStmt(stmt *ExpressionStmt) error {
 	if _, err := s.evaluate(stmt.Expr); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (s *Interpreter) VisitVariableDeclStmt(stmt *VariableDeclarationStmt) error {
+
+	if stmt.Initializer != nil {
+		if value, err := s.evaluate(stmt.Initializer); err != nil {
+			return fmt.Errorf("error evaluating initializer expression: %v", err)
+		} else {
+			s.Environment.Define(stmt.Name.Lexeme, value)
+		}
+	} else {
+		s.Environment.Define(stmt.Name.Lexeme, nil)
+	}
+
 	return nil
 }
