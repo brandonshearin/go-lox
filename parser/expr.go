@@ -70,5 +70,7 @@ type AssignExpr struct {
 	Value Expr
 }
 
-func (a *AssignExpr) Expression()                             {}
-func (a *AssignExpr) Accept(visitor ExprVisitor) (any, error) { return nil, nil }
+func (a *AssignExpr) Expression() {}
+func (a *AssignExpr) Accept(visitor ExprVisitor) (any, error) {
+	return visitor.VisitAssignExpr(a)
+}
