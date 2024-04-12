@@ -34,3 +34,12 @@ func (v *VariableDeclarationStmt) Statement() {}
 func (v *VariableDeclarationStmt) Accept(visitor StmtVisitor) error {
 	return visitor.VisitVariableDeclStmt(v)
 }
+
+type BlockStmt struct {
+	Stmts []Stmt
+}
+
+func (b *BlockStmt) Statement() {}
+func (v *BlockStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitBlockStmt(v)
+}

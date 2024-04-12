@@ -215,6 +215,28 @@ func (s *Interpreter) VisitPrintStmt(stmt *PrintStmt) error {
 	return nil
 }
 
+func (s *Interpreter) VisitBlockStmt(stmt *BlockStmt) error {
+	s.executeBlock(stmt.Stmts, NewEnvironment(&s.Environment))
+	return nil
+}
+
+func (s *Interpreter) executeBlock(stmts []Stmt, env *Environment) error {
+	prev := s.Environment
+	defer func() { s.Environment = prev }()
+
+	// before executing these statements, replace the interpreters environment with the new
+	s.Environment = *env
+	for _, stmt := range stmts {
+		// TODO: error handling??
+		if err := s.execute(stmt); err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+}
+
 func (s *Interpreter) VisitExpressionStmt(stmt *ExpressionStmt) error {
 	if _, err := s.evaluate(stmt.Expr); err != nil {
 		return err

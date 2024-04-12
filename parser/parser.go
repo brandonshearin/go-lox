@@ -70,6 +70,12 @@ func (p *Parser) statement() Stmt {
 		return p.printStatement()
 	}
 
+	if p.match(lexer.LEFT_BRACE) {
+		return &BlockStmt{
+			Stmts: p.block(),
+		}
+	}
+
 	return p.expressionStatement()
 }
 
@@ -81,6 +87,17 @@ func (p *Parser) printStatement() Stmt {
 	return &PrintStmt{
 		Expr: value,
 	}
+}
+
+func (p *Parser) block() []Stmt {
+	stmts := []Stmt{}
+
+	for !p.check(lexer.RIGHT_BRACE) && !p.isAtEnd() {
+		stmts = append(stmts, p.declaration())
+	}
+
+	p.consume(lexer.RIGHT_BRACE, "expect '}' after block.")
+	return stmts
 }
 
 func (p *Parser) expressionStatement() Stmt {
