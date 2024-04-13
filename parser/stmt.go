@@ -54,3 +54,13 @@ func (i *IfStmt) Statement() {}
 func (i *IfStmt) Accept(visitor StmtVisitor) error {
 	return visitor.VisitIfStmt(i)
 }
+
+type WhileStmt struct {
+	Condition Expr
+	Body      Stmt
+}
+
+func (w *WhileStmt) Statement() {}
+func (w *WhileStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitWhileStmt(w)
+}

@@ -16,4 +16,5 @@ type StmtVisitor interface {
 	VisitVariableDeclStmt(stmt *VariableDeclarationStmt) error
 	VisitBlockStmt(stmt *BlockStmt) error
 	VisitIfStmt(stmt *IfStmt) error
+	VisitWhileStmt(stmt *WhileStmt) error
 }

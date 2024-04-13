@@ -74,6 +74,14 @@ func (p *Parser) statement() Stmt {
 		return p.printStatement()
 	}
 
+	if p.match(lexer.WHILE) {
+		return p.whileStatement()
+	}
+
+	if p.match(lexer.FOR) {
+		return p.forStatement()
+	}
+
 	if p.match(lexer.LEFT_BRACE) {
 		return &BlockStmt{
 			Stmts: p.block(),
@@ -109,6 +117,73 @@ func (p *Parser) printStatement() Stmt {
 	return &PrintStmt{
 		Expr: value,
 	}
+}
+
+func (p *Parser) whileStatement() Stmt {
+	p.consume(lexer.LEFT_PAREN, "expected '(' after while")
+	condition := p.expression()
+	p.consume(lexer.RIGHT_PAREN, "expected ')' after while condition")
+
+	body := p.statement()
+
+	return &WhileStmt{
+		Condition: condition,
+		Body:      body,
+	}
+}
+
+func (p *Parser) forStatement() Stmt {
+	p.consume(lexer.LEFT_PAREN, "expect '(' after 'for'.")
+
+	// initializer
+	var initializer Stmt
+	if p.match(lexer.SEMICOLON) {
+		initializer = nil
+	} else if p.match(lexer.VAR) {
+		initializer = p.varDeclaration()
+	} else {
+		initializer = p.expressionStatement()
+	}
+
+	var condition Expr
+	if !p.check(lexer.SEMICOLON) {
+		condition = p.expression()
+	}
+	p.consume(lexer.SEMICOLON, "expect ';' after loop condition")
+
+	var increment Expr
+	if !p.check(lexer.RIGHT_PAREN) {
+		increment = p.expression()
+	}
+
+	p.consume(lexer.RIGHT_PAREN, "expect ')' after for clauses.")
+
+	body := p.statement()
+
+	// if our loop contains an increment expression, then we append it to the original body so that it executes after the original body stmts
+	if increment != nil {
+		body = &BlockStmt{
+			Stmts: []Stmt{body, &ExpressionStmt{Expr: increment}},
+		}
+	}
+
+	// if condition is omitted, jam in `true` for an infinite loop`
+	if condition == nil {
+		condition = &LiteralExpr{
+			Value:     true,
+			IsBoolean: true,
+		}
+	}
+
+	// if there is an initializer, it runs once before the entire loop
+	if initializer != nil {
+		body = &BlockStmt{
+			Stmts: []Stmt{initializer, body},
+		}
+	}
+
+	return body
+
 }
 
 func (p *Parser) block() []Stmt {

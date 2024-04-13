@@ -224,6 +224,22 @@ func (s *Interpreter) execute(stmt Stmt) error {
 	return stmt.Accept(s)
 }
 
+// todo: this feels like it wont work
+func (s *Interpreter) VisitWhileStmt(stmt *WhileStmt) error {
+
+	if val, err := s.evaluate(stmt.Condition); err != nil {
+		return err
+	} else {
+		for isTruthy(val) {
+			if err := s.execute(stmt.Body); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (s *Interpreter) VisitIfStmt(stmt *IfStmt) error {
 	if val, err := s.evaluate(stmt.Condition); err != nil {
 		return err
