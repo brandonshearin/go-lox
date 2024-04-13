@@ -206,6 +206,22 @@ func (s *Interpreter) execute(stmt Stmt) error {
 	return stmt.Accept(s)
 }
 
+func (s *Interpreter) VisitIfStmt(stmt *IfStmt) error {
+	if val, err := s.evaluate(stmt.Condition); err != nil {
+		return err
+	} else if isTruthy(val) {
+		if err := s.execute(stmt.ThenBranch); err != nil {
+			return err
+		}
+	} else if stmt.ElseBranch != nil {
+		if err := s.execute(stmt.ElseBranch); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *Interpreter) VisitPrintStmt(stmt *PrintStmt) error {
 	if val, err := s.evaluate(stmt.Expr); err != nil {
 		return err

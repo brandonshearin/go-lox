@@ -43,3 +43,14 @@ func (b *BlockStmt) Statement() {}
 func (v *BlockStmt) Accept(visitor StmtVisitor) error {
 	return visitor.VisitBlockStmt(v)
 }
+
+type IfStmt struct {
+	Condition  Expr
+	ThenBranch Stmt
+	ElseBranch Stmt
+}
+
+func (i *IfStmt) Statement() {}
+func (i *IfStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitIfStmt(i)
+}

@@ -66,6 +66,10 @@ func (p *Parser) varDeclaration() Stmt {
 }
 
 func (p *Parser) statement() Stmt {
+	if p.match(lexer.IF) {
+		return p.ifStatement()
+	}
+
 	if p.match(lexer.PRINT) {
 		return p.printStatement()
 	}
@@ -77,6 +81,24 @@ func (p *Parser) statement() Stmt {
 	}
 
 	return p.expressionStatement()
+}
+
+func (p *Parser) ifStatement() Stmt {
+	p.consume(lexer.LEFT_PAREN, "expect '(' after 'if'.")
+	condition := p.expression()
+	p.consume(lexer.RIGHT_PAREN, "expect ')' after if condition")
+
+	thenBranch := p.statement()
+	var elseBranch Stmt
+	if p.match(lexer.ELSE) {
+		elseBranch = p.statement()
+	}
+
+	return &IfStmt{
+		Condition:  condition,
+		ThenBranch: thenBranch,
+		ElseBranch: elseBranch,
+	}
 }
 
 func (p *Parser) printStatement() Stmt {
