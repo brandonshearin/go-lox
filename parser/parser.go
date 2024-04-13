@@ -140,7 +140,7 @@ func (p *Parser) expression() Expr {
 // assignment → IDENTIFIER "=" assignment | equality ;
 func (p *Parser) assignment() Expr {
 	// expr holds the l-value of the assignment.
-	expr := p.equality()
+	expr := p.or()
 
 	// after parsing the l-value, if an = operator exists, then pass the r-value of the assignment
 	if p.match(lexer.EQUAL) {
@@ -157,6 +157,38 @@ func (p *Parser) assignment() Expr {
 			}
 		} else {
 			p.handleError(equalsTok, "invalid assignment target")
+		}
+	}
+
+	return expr
+}
+
+func (p *Parser) or() Expr {
+	expr := p.and()
+
+	for p.match(lexer.OR) {
+		operator := p.previous()
+		right := p.and()
+		expr = &LogicalExpr{
+			Left:     expr,
+			Operator: Operator(operator),
+			Right:    right,
+		}
+	}
+
+	return expr
+}
+
+func (p *Parser) and() Expr {
+	expr := p.equality()
+
+	for p.match(lexer.AND) {
+		operator := p.previous()
+		right := p.equality()
+		expr = &LogicalExpr{
+			Left:     expr,
+			Operator: Operator(operator),
+			Right:    right,
 		}
 	}
 

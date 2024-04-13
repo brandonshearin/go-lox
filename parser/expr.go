@@ -74,3 +74,15 @@ func (a *AssignExpr) Expression() {}
 func (a *AssignExpr) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitAssignExpr(a)
 }
+
+// logical operators 'and' and 'or'
+type LogicalExpr struct {
+	Operator Operator
+	Left     Expr
+	Right    Expr
+}
+
+func (l *LogicalExpr) Expression() {}
+func (l *LogicalExpr) Accept(visitor ExprVisitor) (any, error) {
+	return visitor.VisitLogicalExpr(l)
+}

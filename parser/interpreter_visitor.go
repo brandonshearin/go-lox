@@ -144,6 +144,24 @@ func (s *Interpreter) VisitAssignExpr(expr *AssignExpr) (any, error) {
 	}
 }
 
+func (s *Interpreter) VisitLogicalExpr(expr *LogicalExpr) (any, error) {
+	if left, err := s.evaluate(expr.Left); err != nil {
+		return nil, err
+	} else {
+		if expr.Operator.TokenType == lexer.OR {
+			if isTruthy(left) {
+				return left, nil
+			}
+		} else {
+			if !isTruthy(left) {
+				return left, nil
+			}
+		}
+	}
+
+	return s.evaluate(expr.Right)
+}
+
 func isTruthy(obj any) bool {
 	if obj == nil {
 		return false
