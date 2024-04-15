@@ -18,4 +18,5 @@ type StmtVisitor interface {
 	VisitBlockStmt(stmt *BlockStmt) error
 	VisitIfStmt(stmt *IfStmt) error
 	VisitWhileStmt(stmt *WhileStmt) error
+	VisitFunctionStmt(stmt *FunctionStmt) error
 }

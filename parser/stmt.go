@@ -64,3 +64,12 @@ func (w *WhileStmt) Statement() {}
 func (w *WhileStmt) Accept(visitor StmtVisitor) error {
 	return visitor.VisitWhileStmt(w)
 }
+
+type FunctionStmt struct {
+	Name   lexer.Token
+	Params []lexer.Token
+	Body   []Stmt
+}
+
+func (f *FunctionStmt) Statement()                       {}
+func (f *FunctionStmt) Accept(visitor StmtVisitor) error { return visitor.VisitFunctionStmt(f) }

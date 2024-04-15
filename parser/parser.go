@@ -36,6 +36,8 @@ func (p *Parser) declaration() Stmt {
 
 	if p.match(lexer.VAR) {
 		stmt = p.varDeclaration()
+	} else if p.match(lexer.FUN) {
+		stmt = p.functionDeclaration("function")
 	} else {
 		stmt = p.statement()
 	}
@@ -46,6 +48,35 @@ func (p *Parser) declaration() Stmt {
 	}
 
 	return stmt
+}
+
+func (p *Parser) functionDeclaration(kind string) Stmt {
+	name := p.consume(lexer.IDENTIFIER, fmt.Sprintf("expect %s name.", kind))
+
+	p.consume(lexer.LEFT_PAREN, fmt.Sprintf("expect '(' after %s name.", kind))
+
+	params := []lexer.Token{}
+
+	for {
+		params = append(params, p.consume(lexer.IDENTIFIER, "expect parameter name."))
+
+		if !p.match(lexer.COMMA) {
+			break
+		}
+	}
+
+	p.consume(lexer.RIGHT_PAREN, "expect ')' after parameters")
+
+	p.consume(lexer.LEFT_BRACE, fmt.Sprintf("expect '{' before %s body.}", kind))
+
+	body := p.block()
+
+	return &FunctionStmt{
+		Name:   name,
+		Params: params,
+		Body:   body,
+	}
+
 }
 
 // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
