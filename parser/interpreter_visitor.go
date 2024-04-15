@@ -350,3 +350,11 @@ func (s *Interpreter) VisitVariableDeclStmt(stmt *VariableDeclarationStmt) error
 
 	return nil
 }
+
+func (s *Interpreter) VisitFunctionStmt(stmt *FunctionStmt) error {
+	function := NewLoxFunction(*stmt)
+
+	s.Environment.Define(stmt.Name.Lexeme, function)
+
+	return nil
+}
