@@ -350,7 +350,43 @@ func (p *Parser) unary() Expr {
 		}
 	}
 
-	return p.primary()
+	return p.call()
+}
+
+func (p *Parser) call() Expr {
+	expr := p.primary()
+
+	for true {
+		if p.match(lexer.LEFT_PAREN) {
+			expr = p.finishCall(expr)
+		} else {
+			break
+		}
+	}
+
+	return expr
+}
+
+func (p *Parser) finishCall(callee Expr) Expr {
+	args := []Expr{}
+
+	if !p.check(lexer.RIGHT_PAREN) {
+		for {
+			args = append(args, p.expression())
+
+			if !p.match(lexer.COMMA) {
+				break
+			}
+		}
+	}
+
+	paren := p.consume(lexer.RIGHT_PAREN, "expect ')' after arguments.")
+
+	return &CallExpr{
+		Callee:    callee,
+		Paren:     paren,
+		Arguments: args,
+	}
 }
 
 // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER ;

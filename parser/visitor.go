@@ -8,6 +8,7 @@ type ExprVisitor interface {
 	VisitVariableExpr(expr *VariableExpr) (any, error)
 	VisitAssignExpr(expr *AssignExpr) (any, error)
 	VisitLogicalExpr(expr *LogicalExpr) (any, error)
+	VisitCallExpr(expr *CallExpr) (any, error)
 }
 
 type StmtVisitor interface {

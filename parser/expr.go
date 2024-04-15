@@ -86,3 +86,12 @@ func (l *LogicalExpr) Expression() {}
 func (l *LogicalExpr) Accept(visitor ExprVisitor) (any, error) {
 	return visitor.VisitLogicalExpr(l)
 }
+
+type CallExpr struct {
+	Callee    Expr
+	Paren     lexer.Token
+	Arguments []Expr
+}
+
+func (c *CallExpr) Expression()                             {}
+func (c *CallExpr) Accept(visitor ExprVisitor) (any, error) { return visitor.VisitCallExpr(c) }

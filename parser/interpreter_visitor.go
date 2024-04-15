@@ -162,6 +162,37 @@ func (s *Interpreter) VisitLogicalExpr(expr *LogicalExpr) (any, error) {
 	return s.evaluate(expr.Right)
 }
 
+func (s *Interpreter) VisitCallExpr(expr *CallExpr) (any, error) {
+	if callee, err := s.evaluate(expr.Callee); err != nil {
+		return nil, err
+	} else {
+		args := []any{}
+		for _, arg := range expr.Arguments {
+			if arg, err := s.evaluate(arg); err != nil {
+				return nil, err
+			} else {
+				args = append(args, arg)
+			}
+		}
+
+		if c, ok := callee.(LoxCallable); !ok {
+			return nil, &RuntimeError{
+				Token:   expr.Paren,
+				Message: fmt.Sprintf("can only call functions and classes."),
+			}
+		} else if c.Arity() != len(args) {
+			return nil, &RuntimeError{
+				Token:   expr.Paren,
+				Message: fmt.Sprintf("expected %d arguments, got %d", c.Arity, len(args)),
+			}
+		} else {
+			return c.Call(*s, args), nil
+		}
+
+	}
+
+}
+
 func isTruthy(obj any) bool {
 	if obj == nil {
 		return false
