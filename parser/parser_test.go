@@ -351,11 +351,27 @@ func TestFunctionDecl(t *testing.T) {
 	assert.Equal(t, "a", functionDecl.Params[0].Lexeme)
 	assert.Equal(t, "b", functionDecl.Params[1].Lexeme)
 
+	// function decl with body
+	source = `fun foobar(a){
+		var b = a;
+	}`
+	tokens = lexer.NewScanner(source).ScanTokens()
+	p = NewParser(tokens)
+	ast = p.declaration()
+
+	assert.Empty(t, p.Errors)
+	assert.IsType(t, &FunctionStmt{}, ast)
+
+	functionDecl = ast.(*FunctionStmt)
+	assert.Len(t, functionDecl.Params, 1)
+	assert.Equal(t, "a", functionDecl.Params[0].Lexeme)
+	assert.Len(t, functionDecl.Body, 1)
+
 	// error case: no identifier
 	source = "fun (){}"
 	tokens = lexer.NewScanner(source).ScanTokens()
 	p = NewParser(tokens)
-	ast = p.declaration()
+	_ = p.declaration()
 
 	assert.NotEmpty(t, p.Errors)
 	assert.Len(t, p.Errors, 1)
@@ -364,7 +380,7 @@ func TestFunctionDecl(t *testing.T) {
 	source = "fun {}"
 	tokens = lexer.NewScanner(source).ScanTokens()
 	p = NewParser(tokens)
-	ast = p.declaration()
+	_ = p.declaration()
 
 	assert.NotEmpty(t, p.Errors)
 	assert.Len(t, p.Errors, 3)
@@ -373,7 +389,7 @@ func TestFunctionDecl(t *testing.T) {
 	source = "fun "
 	tokens = lexer.NewScanner(source).ScanTokens()
 	p = NewParser(tokens)
-	ast = p.declaration()
+	_ = p.declaration()
 
 	assert.NotEmpty(t, p.Errors)
 	assert.Len(t, p.Errors, 5)
