@@ -261,26 +261,73 @@ func TestLiterals(t *testing.T) {
 	assert.Equal(t, "hello world", exprAST.(*LiteralExpr).Value)
 }
 
+func getStmtFromSource(source string) Stmt {
+	tokens := lexer.NewScanner(source).ScanTokens()
+	p := NewParser(tokens)
+	ast := p.declaration()
+
+	return ast
+}
+
 func TestVarDecl(t *testing.T) {
-	source := "var hello = 1;"
+	// literal initializer
+	ast := getStmtFromSource("var hello = 1;")
+
+	assert.IsType(t, &VariableDeclarationStmt{}, ast)
+	varDecl := ast.(*VariableDeclarationStmt)
+
+	assert.Equal(t, "hello", varDecl.Name.Lexeme)
+	assert.IsType(t, &LiteralExpr{}, varDecl.Initializer)
+
+	assert.Equal(t, float64(1), varDecl.Initializer.(*LiteralExpr).Value)
+
+	// variable initializer
+	ast = getStmtFromSource("var second = a;")
+
+	assert.IsType(t, &VariableDeclarationStmt{}, ast)
+	varDecl = ast.(*VariableDeclarationStmt)
+
+	assert.Equal(t, "second", varDecl.Name.Lexeme)
+	assert.IsType(t, &VariableExpr{}, varDecl.Initializer)
+
+	assert.Equal(t, "a", varDecl.Initializer.(*VariableExpr).Name.Lexeme)
+
+	// call expression initializer
+	ast = getStmtFromSource("var third = foobar();")
+
+	assert.IsType(t, &VariableDeclarationStmt{}, ast)
+	varDecl = ast.(*VariableDeclarationStmt)
+
+	assert.Equal(t, "third", varDecl.Name.Lexeme)
+	assert.IsType(t, &CallExpr{}, varDecl.Initializer)
+
+	assert.Equal(t, "foobar", varDecl.Initializer.(*CallExpr).Callee.(*VariableExpr).Name.Lexeme)
+
+	// logical expression initializer
+	ast = getStmtFromSource("var fourth = a and b;")
+
+	assert.IsType(t, &VariableDeclarationStmt{}, ast)
+	varDecl = ast.(*VariableDeclarationStmt)
+
+	assert.Equal(t, "fourth", varDecl.Name.Lexeme)
+	assert.IsType(t, &LogicalExpr{}, varDecl.Initializer)
+}
+
+func TestSynchronize(t *testing.T) {
+	source := "var = 1; var = 2; var = 3;"
 	tokens := lexer.NewScanner(source).ScanTokens()
 
 	// parse tokens into expression AST
 	p := NewParser(tokens)
-	ast := p.declaration()
-
-	assert.IsType(t, &VariableDeclarationStmt{}, ast)
-	assert.Equal(t, "hello", ast.(*VariableDeclarationStmt).Name.Lexeme)
-
-	// TODO: need to test how the synchronize() feature of the parser begins at the next statement.
-	source = "var hello = 1 \n var world = 2;"
-	tokens = lexer.NewScanner(source).ScanTokens()
-
-	// parse tokens into expression AST
-	p = NewParser(tokens)
 	stmts := p.Parse()
 
-	assert.IsType(t, &VariableDeclarationStmt{}, stmts[0])
+	assert.Len(t, stmts, 3)
+	assert.Len(t, p.Errors, 3)
+
+	for _, stmt := range stmts {
+		assert.IsType(t, &VariableDeclarationStmt{}, stmt, "stmt should be a variable declaration with an empty token for the identifier")
+	}
+
 }
 
 func TestAssignExpr(t *testing.T) {

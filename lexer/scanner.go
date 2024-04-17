@@ -89,7 +89,7 @@ func (s *Scanner) scanToken() {
 		s.addToken(MINUS)
 	case "+":
 		s.addToken(PLUS)
-	case ":":
+	case ";":
 		s.addToken(SEMICOLON)
 	case "*":
 		s.addToken(STAR)

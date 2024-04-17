@@ -387,7 +387,7 @@ func (p *Parser) unary() Expr {
 func (p *Parser) call() Expr {
 	expr := p.primary()
 
-	for true {
+	for {
 		if p.match(lexer.LEFT_PAREN) {
 			expr = p.finishCall(expr)
 		} else {
@@ -501,7 +501,7 @@ func (p *Parser) handleError(token lexer.Token, message string) error {
 		msg := formatErrorMessage(token.Line, " at end", message)
 		p.Errors = append(p.Errors, msg)
 	} else {
-		msg := formatErrorMessage(token.Line, fmt.Sprintf(" at %s", token.Lexeme), message)
+		msg := formatErrorMessage(token.Line, fmt.Sprintf("at %s", token.Lexeme), message)
 		p.Errors = append(p.Errors, msg)
 	}
 	return ErrParse
@@ -512,22 +512,21 @@ func formatErrorMessage(line int, where string, message string) string {
 }
 
 func (p *Parser) synchronize() {
-	p.advance()
-
 	for !p.isAtEnd() {
 		if p.previous().TokenType == lexer.SEMICOLON {
 			return
 		}
 
 		switch p.peek().TokenType {
-		case lexer.CLASS:
-		case lexer.FUN:
-		case lexer.VAR:
-		case lexer.FOR:
-		case lexer.IF:
-		case lexer.WHILE:
-		case lexer.PRINT:
-		case lexer.RETURN:
+		// return once we find the next statement
+		case lexer.CLASS,
+			lexer.FUN,
+			lexer.VAR,
+			lexer.FOR,
+			lexer.IF,
+			lexer.WHILE,
+			lexer.PRINT,
+			lexer.RETURN:
 			return
 		}
 
