@@ -58,7 +58,9 @@ func (p *Parser) functionDeclaration(kind string) Stmt {
 	params := []lexer.Token{}
 
 	for {
-		params = append(params, p.consume(lexer.IDENTIFIER, "expect parameter name."))
+		if p.peek().TokenType == lexer.IDENTIFIER {
+			params = append(params, p.consume(lexer.IDENTIFIER, "expect parameter name."))
+		}
 
 		if !p.match(lexer.COMMA) {
 			break
@@ -67,7 +69,7 @@ func (p *Parser) functionDeclaration(kind string) Stmt {
 
 	p.consume(lexer.RIGHT_PAREN, "expect ')' after parameters")
 
-	p.consume(lexer.LEFT_BRACE, fmt.Sprintf("expect '{' before %s body.}", kind))
+	p.consume(lexer.LEFT_BRACE, fmt.Sprintf("expect '{' before %s body.", kind))
 
 	body := p.block()
 

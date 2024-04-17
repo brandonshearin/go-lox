@@ -313,6 +313,73 @@ func TestVarDecl(t *testing.T) {
 	assert.IsType(t, &LogicalExpr{}, varDecl.Initializer)
 }
 
+func TestFunctionDecl(t *testing.T) {
+	// simple function declaration
+	source := "fun foobar(){}"
+	tokens := lexer.NewScanner(source).ScanTokens()
+	p := NewParser(tokens)
+	ast := p.declaration()
+
+	assert.Empty(t, p.Errors)
+	assert.IsType(t, &FunctionStmt{}, ast)
+	assert.Equal(t, "foobar", ast.(*FunctionStmt).Name.Lexeme)
+
+	// function decl with one param
+	source = "fun foobar(a){}"
+	tokens = lexer.NewScanner(source).ScanTokens()
+	p = NewParser(tokens)
+	ast = p.declaration()
+
+	assert.Empty(t, p.Errors)
+	assert.IsType(t, &FunctionStmt{}, ast)
+
+	functionDecl := ast.(*FunctionStmt)
+	assert.Len(t, functionDecl.Params, 1)
+	assert.Equal(t, "a", functionDecl.Params[0].Lexeme)
+
+	// function decl with multiple params
+	source = "fun foobar(a,b){}"
+	tokens = lexer.NewScanner(source).ScanTokens()
+	p = NewParser(tokens)
+	ast = p.declaration()
+
+	assert.Empty(t, p.Errors)
+	assert.IsType(t, &FunctionStmt{}, ast)
+
+	functionDecl = ast.(*FunctionStmt)
+	assert.Len(t, functionDecl.Params, 2)
+	assert.Equal(t, "a", functionDecl.Params[0].Lexeme)
+	assert.Equal(t, "b", functionDecl.Params[1].Lexeme)
+
+	// error case: no identifier
+	source = "fun (){}"
+	tokens = lexer.NewScanner(source).ScanTokens()
+	p = NewParser(tokens)
+	ast = p.declaration()
+
+	assert.NotEmpty(t, p.Errors)
+	assert.Len(t, p.Errors, 1)
+
+	// error case: no identifier, no parens
+	source = "fun {}"
+	tokens = lexer.NewScanner(source).ScanTokens()
+	p = NewParser(tokens)
+	ast = p.declaration()
+
+	assert.NotEmpty(t, p.Errors)
+	assert.Len(t, p.Errors, 3)
+
+	// error case: no identifier, no parens
+	source = "fun "
+	tokens = lexer.NewScanner(source).ScanTokens()
+	p = NewParser(tokens)
+	ast = p.declaration()
+
+	assert.NotEmpty(t, p.Errors)
+	assert.Len(t, p.Errors, 5)
+
+}
+
 func TestSynchronize(t *testing.T) {
 	source := "var = 1; var = 2; var = 3;"
 	tokens := lexer.NewScanner(source).ScanTokens()
