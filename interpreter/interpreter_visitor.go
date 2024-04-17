@@ -1,10 +1,11 @@
-package parser
+package interpreter
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/brandonshearin/go-lox/lexer"
+	ast "github.com/brandonshearin/go-lox/parser"
 )
 
 // Interpreter implements `ExprVisitor` interface and `StmtVisitor` interface
@@ -18,6 +19,7 @@ func (c *Clock) Arity() int { return 0 }
 func (c *Clock) Call(i Interpreter, arguments []any) any {
 	return time.Now().UnixMilli() / 1000
 }
+
 func (c *Clock) toString() string { return "<native fn>" }
 
 func NewInterpreter() *Interpreter {
@@ -28,7 +30,7 @@ func NewInterpreter() *Interpreter {
 	}
 }
 
-func (s *Interpreter) Interpret(stmts []Stmt) *RuntimeError {
+func (s *Interpreter) Interpret(stmts []ast.Stmt) *RuntimeError {
 	for _, stmt := range stmts {
 		if err := s.execute(stmt); err != nil {
 			e := err.(*RuntimeError)
@@ -39,19 +41,19 @@ func (s *Interpreter) Interpret(stmts []Stmt) *RuntimeError {
 }
 
 // ExprVisitor implementation below ----------------------------------------------------------------
-func (s *Interpreter) evaluate(expr Expr) (any, error) {
+func (s *Interpreter) evaluate(expr ast.Expr) (any, error) {
 	return expr.Accept(s)
 }
 
-func (s *Interpreter) VisitLiteralExpr(expr *LiteralExpr) (any, error) {
+func (s *Interpreter) VisitLiteralExpr(expr *ast.LiteralExpr) (any, error) {
 	return expr.Value, nil
 }
 
-func (s *Interpreter) VisitGroupingExpr(expr *GroupingExpr) (any, error) {
+func (s *Interpreter) VisitGroupingExpr(expr *ast.GroupingExpr) (any, error) {
 	return s.evaluate(expr.Expr)
 }
 
-func (s *Interpreter) VisitUnaryExpr(expr *UnaryExpr) (any, error) {
+func (s *Interpreter) VisitUnaryExpr(expr *ast.UnaryExpr) (any, error) {
 	if right, err := s.evaluate(expr.Expr); err != nil {
 		return nil, err
 	} else {
@@ -70,7 +72,7 @@ func (s *Interpreter) VisitUnaryExpr(expr *UnaryExpr) (any, error) {
 	return nil, nil
 }
 
-func (s *Interpreter) VisitBinaryExpr(expr *BinaryExpr) (any, error) {
+func (s *Interpreter) VisitBinaryExpr(expr *ast.BinaryExpr) (any, error) {
 	if left, err := s.evaluate(expr.LeftExpr); err != nil {
 		return nil, err
 	} else if right, err := s.evaluate(expr.RightExpr); err != nil {
@@ -141,11 +143,11 @@ func (s *Interpreter) VisitBinaryExpr(expr *BinaryExpr) (any, error) {
 	return nil, nil
 }
 
-func (s *Interpreter) VisitVariableExpr(expr *VariableExpr) (any, error) {
+func (s *Interpreter) VisitVariableExpr(expr *ast.VariableExpr) (any, error) {
 	return s.Environment.Get(expr.Name)
 }
 
-func (s *Interpreter) VisitAssignExpr(expr *AssignExpr) (any, error) {
+func (s *Interpreter) VisitAssignExpr(expr *ast.AssignExpr) (any, error) {
 	if value, err := s.evaluate(expr.Value); err != nil {
 		return nil, err
 	} else if err := s.Environment.Assign(expr.Name, value); err != nil {
@@ -155,7 +157,7 @@ func (s *Interpreter) VisitAssignExpr(expr *AssignExpr) (any, error) {
 	}
 }
 
-func (s *Interpreter) VisitLogicalExpr(expr *LogicalExpr) (any, error) {
+func (s *Interpreter) VisitLogicalExpr(expr *ast.LogicalExpr) (any, error) {
 	if left, err := s.evaluate(expr.Left); err != nil {
 		return nil, err
 	} else {
@@ -173,7 +175,7 @@ func (s *Interpreter) VisitLogicalExpr(expr *LogicalExpr) (any, error) {
 	return s.evaluate(expr.Right)
 }
 
-func (s *Interpreter) VisitCallExpr(expr *CallExpr) (any, error) {
+func (s *Interpreter) VisitCallExpr(expr *ast.CallExpr) (any, error) {
 	if callee, err := s.evaluate(expr.Callee); err != nil {
 		return nil, err
 	} else {
@@ -262,12 +264,12 @@ func (e *RuntimeError) Error() string {
 }
 
 // StmtVisitor implementation below ----------------------------------------------------------------
-func (s *Interpreter) execute(stmt Stmt) error {
+func (s *Interpreter) execute(stmt ast.Stmt) error {
 	return stmt.Accept(s)
 }
 
 // todo: this feels like it wont work
-func (s *Interpreter) VisitWhileStmt(stmt *WhileStmt) error {
+func (s *Interpreter) VisitWhileStmt(stmt *ast.WhileStmt) error {
 
 	if val, err := s.evaluate(stmt.Condition); err != nil {
 		return err
@@ -282,7 +284,7 @@ func (s *Interpreter) VisitWhileStmt(stmt *WhileStmt) error {
 	return nil
 }
 
-func (s *Interpreter) VisitIfStmt(stmt *IfStmt) error {
+func (s *Interpreter) VisitIfStmt(stmt *ast.IfStmt) error {
 	if val, err := s.evaluate(stmt.Condition); err != nil {
 		return err
 	} else if isTruthy(val) {
@@ -298,7 +300,7 @@ func (s *Interpreter) VisitIfStmt(stmt *IfStmt) error {
 	return nil
 }
 
-func (s *Interpreter) VisitPrintStmt(stmt *PrintStmt) error {
+func (s *Interpreter) VisitPrintStmt(stmt *ast.PrintStmt) error {
 	if val, err := s.evaluate(stmt.Expr); err != nil {
 		return err
 	} else {
@@ -307,12 +309,12 @@ func (s *Interpreter) VisitPrintStmt(stmt *PrintStmt) error {
 	return nil
 }
 
-func (s *Interpreter) VisitBlockStmt(stmt *BlockStmt) error {
+func (s *Interpreter) VisitBlockStmt(stmt *ast.BlockStmt) error {
 	s.executeBlock(stmt.Stmts, NewEnvironment(&s.Environment))
 	return nil
 }
 
-func (s *Interpreter) executeBlock(stmts []Stmt, env *Environment) error {
+func (s *Interpreter) executeBlock(stmts []ast.Stmt, env *Environment) error {
 	prev := s.Environment
 	defer func() { s.Environment = prev }()
 
@@ -329,14 +331,14 @@ func (s *Interpreter) executeBlock(stmts []Stmt, env *Environment) error {
 
 }
 
-func (s *Interpreter) VisitExpressionStmt(stmt *ExpressionStmt) error {
+func (s *Interpreter) VisitExpressionStmt(stmt *ast.ExpressionStmt) error {
 	if _, err := s.evaluate(stmt.Expr); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Interpreter) VisitVariableDeclStmt(stmt *VariableDeclarationStmt) error {
+func (s *Interpreter) VisitVariableDeclStmt(stmt *ast.VariableDeclarationStmt) error {
 
 	if stmt.Initializer != nil {
 		if value, err := s.evaluate(stmt.Initializer); err != nil {
@@ -351,7 +353,7 @@ func (s *Interpreter) VisitVariableDeclStmt(stmt *VariableDeclarationStmt) error
 	return nil
 }
 
-func (s *Interpreter) VisitFunctionStmt(stmt *FunctionStmt) error {
+func (s *Interpreter) VisitFunctionStmt(stmt *ast.FunctionStmt) error {
 	function := NewLoxFunction(*stmt)
 
 	s.Environment.Define(stmt.Name.Lexeme, function)

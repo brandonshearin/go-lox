@@ -64,6 +64,11 @@ func (a *ASTPrinter) VisitLogicalExpr(expr *LogicalExpr) (any, error) {
 	return expr.Left, nil
 }
 
+// todo: haven't implemented yet
+func (a *ASTPrinter) VisitCallExpr(expr *CallExpr) (any, error) {
+	return expr.Callee, nil
+}
+
 func (a *ASTPrinter) parenthesize(name string, expr ...Expr) string {
 	var builder strings.Builder
 

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/brandonshearin/go-lox/interpreter"
 	"github.com/brandonshearin/go-lox/lexer"
 	"github.com/brandonshearin/go-lox/parser"
 )
@@ -14,8 +15,7 @@ func NewLox() *Lox {
 	return &Lox{
 		hadError:        false,
 		hadRuntimeError: false,
-		// Lexer:           *lexer.NewScanner(),
-		Interpreter: *parser.NewInterpreter(),
+		Interpreter:     *interpreter.NewInterpreter(),
 	}
 }
 
@@ -24,7 +24,7 @@ type Lox struct {
 	hadRuntimeError bool
 	// Lexer           lexer.Scanner
 	// Parser          parser.Parser/
-	Interpreter parser.Interpreter
+	Interpreter interpreter.Interpreter
 }
 
 func (l *Lox) RunFile(filename string) error {
@@ -98,7 +98,7 @@ func (l *Lox) Report(line int, where string, message string) {
 	fmt.Println("[line ", line, "] Error ", where, ": ", message)
 }
 
-func (l *Lox) HandleRuntimeError(e parser.RuntimeError) {
+func (l *Lox) HandleRuntimeError(e interpreter.RuntimeError) {
 	fmt.Println(e.Message, "\n[line ], ", e.Token.Line, "]")
 	l.hadRuntimeError = true
 }

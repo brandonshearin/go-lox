@@ -1,4 +1,4 @@
-package parser
+package interpreter
 
 type LoxCallable interface {
 	Call(interpreter Interpreter, arguments []any) any

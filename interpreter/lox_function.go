@@ -1,13 +1,17 @@
-package parser
+package interpreter
 
-import "fmt"
+import (
+	"fmt"
+
+	ast "github.com/brandonshearin/go-lox/parser"
+)
 
 // implements LoxCallable
 type LoxFunction struct {
-	Declaration FunctionStmt
+	Declaration ast.FunctionStmt
 }
 
-func NewLoxFunction(decl FunctionStmt) *LoxFunction {
+func NewLoxFunction(decl ast.FunctionStmt) *LoxFunction {
 	return &LoxFunction{
 		Declaration: decl,
 	}
