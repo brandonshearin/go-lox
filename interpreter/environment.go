@@ -52,6 +52,7 @@ func (e *Environment) Get(name lexer.Token) (any, error) {
 func (e *Environment) Assign(name lexer.Token, value any) error {
 	if _, ok := e.Values[name.Lexeme]; ok {
 		e.Values[name.Lexeme] = value
+		return nil
 	}
 
 	if e.Enclosing != nil {

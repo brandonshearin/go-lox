@@ -1,6 +1,12 @@
+// var decls
 var a = "hello"
 var b = 1;
 
+// function decl
 fun hello(a,b) {
     var c = 3;
+}
+
+fun yo() {
+    var a = a and b;
 }

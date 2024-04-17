@@ -1,8 +1,9 @@
 package interpreter
 
 import (
+	"bytes"
 	"fmt"
-	"time"
+	"os"
 
 	"github.com/brandonshearin/go-lox/lexer"
 	ast "github.com/brandonshearin/go-lox/parser"
@@ -11,16 +12,8 @@ import (
 // Interpreter implements `ExprVisitor` interface and `StmtVisitor` interface
 type Interpreter struct {
 	Environment Environment
+	Output      bytes.Buffer
 }
-
-type Clock struct{}
-
-func (c *Clock) Arity() int { return 0 }
-func (c *Clock) Call(i Interpreter, arguments []any) any {
-	return time.Now().UnixMilli() / 1000
-}
-
-func (c *Clock) toString() string { return "<native fn>" }
 
 func NewInterpreter() *Interpreter {
 	globals := NewGlobalEnvironment()
@@ -196,7 +189,7 @@ func (s *Interpreter) VisitCallExpr(expr *ast.CallExpr) (any, error) {
 		} else if c.Arity() != len(args) {
 			return nil, &RuntimeError{
 				Token:   expr.Paren,
-				Message: fmt.Sprintf("expected %d arguments, got %d", c.Arity, len(args)),
+				Message: fmt.Sprintf("expected %d arguments, got %d", c.Arity(), len(args)),
 			}
 		} else {
 			return c.Call(*s, args), nil
@@ -304,7 +297,8 @@ func (s *Interpreter) VisitPrintStmt(stmt *ast.PrintStmt) error {
 	if val, err := s.evaluate(stmt.Expr); err != nil {
 		return err
 	} else {
-		fmt.Println(val)
+		fmt.Fprintf(os.Stdout, fmt.Sprintln(val))
+		fmt.Fprintf(&s.Output, fmt.Sprintln(val))
 	}
 	return nil
 }
@@ -339,7 +333,6 @@ func (s *Interpreter) VisitExpressionStmt(stmt *ast.ExpressionStmt) error {
 }
 
 func (s *Interpreter) VisitVariableDeclStmt(stmt *ast.VariableDeclarationStmt) error {
-
 	if stmt.Initializer != nil {
 		if value, err := s.evaluate(stmt.Initializer); err != nil {
 			return fmt.Errorf("error evaluating initializer expression: %v", err)
