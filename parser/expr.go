@@ -4,7 +4,7 @@ import "github.com/brandonshearin/go-lox/lexer"
 
 type Expr interface {
 	Expression()
-	Accept(visitor ExprVisitor) (any, error)
+	Accept(visitor ExprVisitor) (any, RuntimeError)
 }
 
 type LiteralExpr struct {
@@ -15,7 +15,7 @@ type LiteralExpr struct {
 
 func (l *LiteralExpr) Expression() {}
 
-func (l *LiteralExpr) Accept(visitor ExprVisitor) (any, error) {
+func (l *LiteralExpr) Accept(visitor ExprVisitor) (any, RuntimeError) {
 	return visitor.VisitLiteralExpr(l)
 }
 
@@ -27,7 +27,7 @@ type UnaryExpr struct {
 
 func (u *UnaryExpr) Expression() {}
 
-func (u *UnaryExpr) Accept(visitor ExprVisitor) (any, error) {
+func (u *UnaryExpr) Accept(visitor ExprVisitor) (any, RuntimeError) {
 	return visitor.VisitUnaryExpr(u)
 }
 
@@ -39,7 +39,7 @@ type BinaryExpr struct {
 
 func (b *BinaryExpr) Expression() {}
 
-func (b *BinaryExpr) Accept(visitor ExprVisitor) (any, error) {
+func (b *BinaryExpr) Accept(visitor ExprVisitor) (any, RuntimeError) {
 	return visitor.VisitBinaryExpr(b)
 }
 
@@ -49,7 +49,7 @@ type GroupingExpr struct {
 
 func (g *GroupingExpr) Expression() {}
 
-func (g *GroupingExpr) Accept(visitor ExprVisitor) (any, error) {
+func (g *GroupingExpr) Accept(visitor ExprVisitor) (any, RuntimeError) {
 	return visitor.VisitGroupingExpr(g)
 }
 
@@ -61,7 +61,7 @@ type VariableExpr struct {
 }
 
 func (v *VariableExpr) Expression() {}
-func (v *VariableExpr) Accept(visitor ExprVisitor) (any, error) {
+func (v *VariableExpr) Accept(visitor ExprVisitor) (any, RuntimeError) {
 	return visitor.VisitVariableExpr(v)
 }
 
@@ -71,7 +71,7 @@ type AssignExpr struct {
 }
 
 func (a *AssignExpr) Expression() {}
-func (a *AssignExpr) Accept(visitor ExprVisitor) (any, error) {
+func (a *AssignExpr) Accept(visitor ExprVisitor) (any, RuntimeError) {
 	return visitor.VisitAssignExpr(a)
 }
 
@@ -83,7 +83,7 @@ type LogicalExpr struct {
 }
 
 func (l *LogicalExpr) Expression() {}
-func (l *LogicalExpr) Accept(visitor ExprVisitor) (any, error) {
+func (l *LogicalExpr) Accept(visitor ExprVisitor) (any, RuntimeError) {
 	return visitor.VisitLogicalExpr(l)
 }
 
@@ -93,5 +93,5 @@ type CallExpr struct {
 	Arguments []Expr
 }
 
-func (c *CallExpr) Expression()                             {}
-func (c *CallExpr) Accept(visitor ExprVisitor) (any, error) { return visitor.VisitCallExpr(c) }
+func (c *CallExpr) Expression()                                    {}
+func (c *CallExpr) Accept(visitor ExprVisitor) (any, RuntimeError) { return visitor.VisitCallExpr(c) }

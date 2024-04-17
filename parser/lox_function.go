@@ -5,23 +5,28 @@ import "fmt"
 // implements LoxCallable
 type LoxFunction struct {
 	Declaration FunctionStmt
+	Closure     Environment
 }
 
-func NewLoxFunction(decl FunctionStmt) *LoxFunction {
+func NewLoxFunction(decl FunctionStmt, closure Environment) *LoxFunction {
 	return &LoxFunction{
 		Declaration: decl,
+		Closure:     closure,
 	}
 }
 
 func (s *LoxFunction) Call(interpreter Interpreter, arguments []any) any {
-	env := NewEnvironment(&interpreter.Environment)
+	env := NewEnvironment(&s.Closure)
 
 	for i, param := range s.Declaration.Params {
 		env.Define(param.Lexeme, arguments[i])
 	}
 
 	if err := interpreter.executeBlock(s.Declaration.Body, env); err != nil {
-		return err
+		// the return value will bubble up the call stack as a RuntimeError
+		if ret, ok := err.(*Return); ok {
+			return ret.Value
+		}
 	}
 
 	return nil

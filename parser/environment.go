@@ -31,7 +31,7 @@ func (e *Environment) Define(name string, value any) {
 	e.Values[name] = value
 }
 
-func (e *Environment) Get(name lexer.Token) (any, error) {
+func (e *Environment) Get(name lexer.Token) (any, RuntimeError) {
 	if val, ok := e.Values[name.Lexeme]; ok {
 		return val, nil
 	}
@@ -41,7 +41,7 @@ func (e *Environment) Get(name lexer.Token) (any, error) {
 		return e.Get(name)
 	} else {
 		// once we reach the global scope, return a runtime error if name never found
-		return nil, &RuntimeError{
+		return nil, &RuntimeErrorImpl{
 			Token:   name,
 			Message: fmt.Sprintf("undefined variable '%s'.", name.Lexeme),
 		}
@@ -49,7 +49,7 @@ func (e *Environment) Get(name lexer.Token) (any, error) {
 
 }
 
-func (e *Environment) Assign(name lexer.Token, value any) error {
+func (e *Environment) Assign(name lexer.Token, value any) RuntimeError {
 	if _, ok := e.Values[name.Lexeme]; ok {
 		e.Values[name.Lexeme] = value
 	}
@@ -57,7 +57,7 @@ func (e *Environment) Assign(name lexer.Token, value any) error {
 	if e.Enclosing != nil {
 		return e.Enclosing.Assign(name, value)
 	} else {
-		return &RuntimeError{
+		return &RuntimeErrorImpl{
 			Token:   name,
 			Message: fmt.Sprintf("undefined variable '%s'.", name.Lexeme),
 		}

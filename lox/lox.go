@@ -98,7 +98,7 @@ func (l *Lox) Report(line int, where string, message string) {
 	fmt.Println("[line ", line, "] Error ", where, ": ", message)
 }
 
-func (l *Lox) HandleRuntimeError(e parser.RuntimeError) {
+func (l *Lox) HandleRuntimeError(e parser.RuntimeErrorImpl) {
 	fmt.Println(e.Message, "\n[line ], ", e.Token.Line, "]")
 	l.hadRuntimeError = true
 }

@@ -28,10 +28,10 @@ func NewInterpreter() *Interpreter {
 	}
 }
 
-func (s *Interpreter) Interpret(stmts []Stmt) *RuntimeError {
+func (s *Interpreter) Interpret(stmts []Stmt) *RuntimeErrorImpl {
 	for _, stmt := range stmts {
 		if err := s.execute(stmt); err != nil {
-			e := err.(*RuntimeError)
+			e := err.(*RuntimeErrorImpl)
 			return e
 		}
 	}
@@ -39,19 +39,19 @@ func (s *Interpreter) Interpret(stmts []Stmt) *RuntimeError {
 }
 
 // ExprVisitor implementation below ----------------------------------------------------------------
-func (s *Interpreter) evaluate(expr Expr) (any, error) {
+func (s *Interpreter) evaluate(expr Expr) (any, RuntimeError) {
 	return expr.Accept(s)
 }
 
-func (s *Interpreter) VisitLiteralExpr(expr *LiteralExpr) (any, error) {
+func (s *Interpreter) VisitLiteralExpr(expr *LiteralExpr) (any, RuntimeError) {
 	return expr.Value, nil
 }
 
-func (s *Interpreter) VisitGroupingExpr(expr *GroupingExpr) (any, error) {
+func (s *Interpreter) VisitGroupingExpr(expr *GroupingExpr) (any, RuntimeError) {
 	return s.evaluate(expr.Expr)
 }
 
-func (s *Interpreter) VisitUnaryExpr(expr *UnaryExpr) (any, error) {
+func (s *Interpreter) VisitUnaryExpr(expr *UnaryExpr) (any, RuntimeError) {
 	if right, err := s.evaluate(expr.Expr); err != nil {
 		return nil, err
 	} else {
@@ -70,7 +70,7 @@ func (s *Interpreter) VisitUnaryExpr(expr *UnaryExpr) (any, error) {
 	return nil, nil
 }
 
-func (s *Interpreter) VisitBinaryExpr(expr *BinaryExpr) (any, error) {
+func (s *Interpreter) VisitBinaryExpr(expr *BinaryExpr) (any, RuntimeError) {
 	if left, err := s.evaluate(expr.LeftExpr); err != nil {
 		return nil, err
 	} else if right, err := s.evaluate(expr.RightExpr); err != nil {
@@ -107,7 +107,7 @@ func (s *Interpreter) VisitBinaryExpr(expr *BinaryExpr) (any, error) {
 				return leftStr + rightStr, nil
 			}
 
-			return nil, &RuntimeError{
+			return nil, &RuntimeErrorImpl{
 				Token:   lexer.Token(expr.Operator),
 				Message: "operands must be two numbers or two strings.",
 			}
@@ -141,11 +141,11 @@ func (s *Interpreter) VisitBinaryExpr(expr *BinaryExpr) (any, error) {
 	return nil, nil
 }
 
-func (s *Interpreter) VisitVariableExpr(expr *VariableExpr) (any, error) {
+func (s *Interpreter) VisitVariableExpr(expr *VariableExpr) (any, RuntimeError) {
 	return s.Environment.Get(expr.Name)
 }
 
-func (s *Interpreter) VisitAssignExpr(expr *AssignExpr) (any, error) {
+func (s *Interpreter) VisitAssignExpr(expr *AssignExpr) (any, RuntimeError) {
 	if value, err := s.evaluate(expr.Value); err != nil {
 		return nil, err
 	} else if err := s.Environment.Assign(expr.Name, value); err != nil {
@@ -155,7 +155,7 @@ func (s *Interpreter) VisitAssignExpr(expr *AssignExpr) (any, error) {
 	}
 }
 
-func (s *Interpreter) VisitLogicalExpr(expr *LogicalExpr) (any, error) {
+func (s *Interpreter) VisitLogicalExpr(expr *LogicalExpr) (any, RuntimeError) {
 	if left, err := s.evaluate(expr.Left); err != nil {
 		return nil, err
 	} else {
@@ -173,7 +173,7 @@ func (s *Interpreter) VisitLogicalExpr(expr *LogicalExpr) (any, error) {
 	return s.evaluate(expr.Right)
 }
 
-func (s *Interpreter) VisitCallExpr(expr *CallExpr) (any, error) {
+func (s *Interpreter) VisitCallExpr(expr *CallExpr) (any, RuntimeError) {
 	if callee, err := s.evaluate(expr.Callee); err != nil {
 		return nil, err
 	} else {
@@ -187,12 +187,12 @@ func (s *Interpreter) VisitCallExpr(expr *CallExpr) (any, error) {
 		}
 
 		if c, ok := callee.(LoxCallable); !ok {
-			return nil, &RuntimeError{
+			return nil, &RuntimeErrorImpl{
 				Token:   expr.Paren,
 				Message: fmt.Sprintf("can only call functions and classes."),
 			}
 		} else if c.Arity() != len(args) {
-			return nil, &RuntimeError{
+			return nil, &RuntimeErrorImpl{
 				Token:   expr.Paren,
 				Message: fmt.Sprintf("expected %d arguments, got %d", c.Arity, len(args)),
 			}
@@ -228,46 +228,58 @@ func isEqual(left, right any) bool {
 	return left == right
 }
 
-func checkNumberOperand(operator lexer.Token, operand any) error {
+func checkNumberOperand(operator lexer.Token, operand any) RuntimeError {
 	if _, ok := operand.(float64); ok {
 		return nil
 	}
 
-	return &RuntimeError{
+	return &RuntimeErrorImpl{
 		Token:   operator,
 		Message: "operand must be a number.",
 	}
 }
 
-func checkNumberOperands(operator lexer.Token, left, right any) error {
+func checkNumberOperands(operator lexer.Token, left, right any) RuntimeError {
 	if _, ok := left.(float64); ok {
 		if _, ok := right.(float64); ok {
 			return nil
 		}
 	}
 
-	return &RuntimeError{
+	return &RuntimeErrorImpl{
 		Token:   operator,
 		Message: "operands must be numbers.",
 	}
 }
 
-type RuntimeError struct {
+type RuntimeError interface {
+	RuntimeError()
+}
+type RuntimeErrorImpl struct {
 	Token   lexer.Token
 	Message string
 }
 
-func (e *RuntimeError) Error() string {
+func (e *RuntimeErrorImpl) Error() string {
 	return fmt.Sprintf("Operator: %s, Message: %s", e.Token.Lexeme, e.Message)
 }
 
+func (e *RuntimeErrorImpl) RuntimeError() {}
+
+// Return implements the RuntimeError interface because it will be thrown/caught following a pattern similar to runtime errors
+type Return struct {
+	Value any
+}
+
+func (e *Return) RuntimeError() {}
+
 // StmtVisitor implementation below ----------------------------------------------------------------
-func (s *Interpreter) execute(stmt Stmt) error {
+func (s *Interpreter) execute(stmt Stmt) RuntimeError {
 	return stmt.Accept(s)
 }
 
 // todo: this feels like it wont work
-func (s *Interpreter) VisitWhileStmt(stmt *WhileStmt) error {
+func (s *Interpreter) VisitWhileStmt(stmt *WhileStmt) RuntimeError {
 
 	if val, err := s.evaluate(stmt.Condition); err != nil {
 		return err
@@ -282,7 +294,21 @@ func (s *Interpreter) VisitWhileStmt(stmt *WhileStmt) error {
 	return nil
 }
 
-func (s *Interpreter) VisitIfStmt(stmt *IfStmt) error {
+func (s *Interpreter) VisitReturnStmt(stmt *ReturnStmt) RuntimeError {
+	if stmt.Value != nil {
+		if value, err := s.evaluate(stmt.Value); err != nil {
+			return err
+		} else {
+			return &Return{
+				Value: value,
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *Interpreter) VisitIfStmt(stmt *IfStmt) RuntimeError {
 	if val, err := s.evaluate(stmt.Condition); err != nil {
 		return err
 	} else if isTruthy(val) {
@@ -298,7 +324,7 @@ func (s *Interpreter) VisitIfStmt(stmt *IfStmt) error {
 	return nil
 }
 
-func (s *Interpreter) VisitPrintStmt(stmt *PrintStmt) error {
+func (s *Interpreter) VisitPrintStmt(stmt *PrintStmt) RuntimeError {
 	if val, err := s.evaluate(stmt.Expr); err != nil {
 		return err
 	} else {
@@ -307,19 +333,19 @@ func (s *Interpreter) VisitPrintStmt(stmt *PrintStmt) error {
 	return nil
 }
 
-func (s *Interpreter) VisitBlockStmt(stmt *BlockStmt) error {
+func (s *Interpreter) VisitBlockStmt(stmt *BlockStmt) RuntimeError {
 	s.executeBlock(stmt.Stmts, NewEnvironment(&s.Environment))
 	return nil
 }
 
-func (s *Interpreter) executeBlock(stmts []Stmt, env *Environment) error {
+func (s *Interpreter) executeBlock(stmts []Stmt, env *Environment) RuntimeError {
 	prev := s.Environment
 	defer func() { s.Environment = prev }()
 
 	// before executing these statements, replace the interpreters environment with the new
 	s.Environment = *env
 	for _, stmt := range stmts {
-		// TODO: error handling??
+		// TODO: RuntimeError handling??
 		if err := s.execute(stmt); err != nil {
 			return err
 		}
@@ -329,18 +355,21 @@ func (s *Interpreter) executeBlock(stmts []Stmt, env *Environment) error {
 
 }
 
-func (s *Interpreter) VisitExpressionStmt(stmt *ExpressionStmt) error {
+func (s *Interpreter) VisitExpressionStmt(stmt *ExpressionStmt) RuntimeError {
 	if _, err := s.evaluate(stmt.Expr); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Interpreter) VisitVariableDeclStmt(stmt *VariableDeclarationStmt) error {
+func (s *Interpreter) VisitVariableDeclStmt(stmt *VariableDeclarationStmt) RuntimeError {
 
 	if stmt.Initializer != nil {
 		if value, err := s.evaluate(stmt.Initializer); err != nil {
-			return fmt.Errorf("error evaluating initializer expression: %v", err)
+			// return fmt.Errorf("error evaluating initializer expression: %v", err)
+			return &RuntimeErrorImpl{
+				Message: fmt.Sprintf("error evaluating initializer expression: %v", err),
+			}
 		} else {
 			s.Environment.Define(stmt.Name.Lexeme, value)
 		}
@@ -351,8 +380,8 @@ func (s *Interpreter) VisitVariableDeclStmt(stmt *VariableDeclarationStmt) error
 	return nil
 }
 
-func (s *Interpreter) VisitFunctionStmt(stmt *FunctionStmt) error {
-	function := NewLoxFunction(*stmt)
+func (s *Interpreter) VisitFunctionStmt(stmt *FunctionStmt) RuntimeError {
+	function := NewLoxFunction(*stmt, s.Environment)
 
 	s.Environment.Define(stmt.Name.Lexeme, function)
 

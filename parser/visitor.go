@@ -1,22 +1,23 @@
 package parser
 
 type ExprVisitor interface {
-	VisitBinaryExpr(expr *BinaryExpr) (any, error)
-	VisitUnaryExpr(expr *UnaryExpr) (any, error)
-	VisitGroupingExpr(expr *GroupingExpr) (any, error)
-	VisitLiteralExpr(expr *LiteralExpr) (any, error)
-	VisitVariableExpr(expr *VariableExpr) (any, error)
-	VisitAssignExpr(expr *AssignExpr) (any, error)
-	VisitLogicalExpr(expr *LogicalExpr) (any, error)
-	VisitCallExpr(expr *CallExpr) (any, error)
+	VisitBinaryExpr(expr *BinaryExpr) (any, RuntimeError)
+	VisitUnaryExpr(expr *UnaryExpr) (any, RuntimeError)
+	VisitGroupingExpr(expr *GroupingExpr) (any, RuntimeError)
+	VisitLiteralExpr(expr *LiteralExpr) (any, RuntimeError)
+	VisitVariableExpr(expr *VariableExpr) (any, RuntimeError)
+	VisitAssignExpr(expr *AssignExpr) (any, RuntimeError)
+	VisitLogicalExpr(expr *LogicalExpr) (any, RuntimeError)
+	VisitCallExpr(expr *CallExpr) (any, RuntimeError)
 }
 
 type StmtVisitor interface {
-	VisitPrintStmt(stmt *PrintStmt) error
-	VisitExpressionStmt(stmt *ExpressionStmt) error
-	VisitVariableDeclStmt(stmt *VariableDeclarationStmt) error
-	VisitBlockStmt(stmt *BlockStmt) error
-	VisitIfStmt(stmt *IfStmt) error
-	VisitWhileStmt(stmt *WhileStmt) error
-	VisitFunctionStmt(stmt *FunctionStmt) error
+	VisitPrintStmt(stmt *PrintStmt) RuntimeError
+	VisitExpressionStmt(stmt *ExpressionStmt) RuntimeError
+	VisitVariableDeclStmt(stmt *VariableDeclarationStmt) RuntimeError
+	VisitBlockStmt(stmt *BlockStmt) RuntimeError
+	VisitIfStmt(stmt *IfStmt) RuntimeError
+	VisitWhileStmt(stmt *WhileStmt) RuntimeError
+	VisitFunctionStmt(stmt *FunctionStmt) RuntimeError
+	VisitReturnStmt(stmt *ReturnStmt) RuntimeError
 }
